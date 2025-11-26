@@ -1,21 +1,26 @@
-# ResultR
+# 🎯 ResultR
+
+[![GitHub Release](https://img.shields.io/github/v/release/AlanBarber/ResultR)](https://github.com/AlanBarber/ResultR/releases)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/alanbarber/ResultR/release.yml)](https://github.com/AlanBarber/ResultR/actions/workflows/release.yml)
+[![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/alanbarber/ResultR/total)](https://github.com/AlanBarber/ResultR/releases)
+[![GitHub License](https://img.shields.io/github/license/alanbarber/ResultR)](https://github.com/AlanBarber/ResultR/blob/main/LICENSE)
 
 A lightweight, opinionated C# mediator library focused on simplicity and clean design.
 
-## Overview
+## 📖 Overview
 
 ResultR provides a minimal yet powerful mediator pattern implementation with built-in result handling, validation, and request lifecycle hooks. It's designed as a modern alternative to MediatR with a smaller surface area and a clearer result pattern.
 
-## Key Features
+## ✨ Key Features
 
-- **Single Interface Pattern**: Uses only `IRequest<TResponse>` and `IRequestHandler<TRequest, TResponse>` - no distinction between commands and queries
-- **Unified Result Type**: All operations return `Result<T>` or `Result`, supporting success/failure states, exception capture, and optional metadata
-- **Optional Inline Hooks**: Handlers can override `ValidateAsync()`, `OnPreHandleAsync()`, and `OnPostHandleAsync()` methods without requiring base classes or separate interfaces
-- **Request-Specific Logging**: Built-in support for per-request logging via `ILoggerFactory`
-- **Minimal Configuration**: Simple DI integration with minimal setup
-- **Strong Typing**: Full type safety throughout the pipeline
+- 🔌 **Single Interface Pattern**: Uses only `IRequest<TResponse>` and `IRequestHandler<TRequest, TResponse>` - no distinction between commands and queries
+- 📦 **Unified Result Type**: All operations return `Result<T>` or `Result`, supporting success/failure states, exception capture, and optional metadata
+- 🪝 **Optional Inline Hooks**: Handlers can override `ValidateAsync()`, `OnPreHandleAsync()`, and `OnPostHandleAsync()` methods without requiring base classes or separate interfaces
+- 📝 **Request-Specific Logging**: Built-in support for per-request logging via `ILoggerFactory`
+- ⚡ **Minimal Configuration**: Simple DI integration with minimal setup
+- 🔒 **Strong Typing**: Full type safety throughout the pipeline
 
-## Design Philosophy
+## 💡 Design Philosophy
 
 ResultR prioritizes:
 - **Simplicity over flexibility**: Opinionated design choices reduce boilerplate
@@ -23,23 +28,23 @@ ResultR prioritizes:
 - **Explicit over implicit**: Clear pipeline execution with predictable behavior
 - **Modern C# practices**: Leverages latest language features and patterns
 
-## Pipeline Execution
+## 🔄 Pipeline Execution
 
 Each request flows through a simple, predictable pipeline:
 
-1. **Validation** - Calls `ValidateAsync()` if overridden, short-circuits on failure
-2. **Pre-Handle** - Invokes `OnPreHandleAsync()` for optional logging or setup
-3. **Handle** - Executes the core `HandleAsync()` logic
-4. **Post-Handle** - Invokes `OnPostHandleAsync()` for logging or cleanup
-5. **Exception Handling** - Any exceptions are caught and returned as `Result.Failure` with the exception attached
+1. ✅ **Validation** - Calls `ValidateAsync()` if overridden, short-circuits on failure
+2. 🚀 **Pre-Handle** - Invokes `OnPreHandleAsync()` for optional logging or setup
+3. ⚙️ **Handle** - Executes the core `HandleAsync()` logic
+4. 🏁 **Post-Handle** - Invokes `OnPostHandleAsync()` for logging or cleanup
+5. 🛡️ **Exception Handling** - Any exceptions are caught and returned as `Result.Failure` with the exception attached
 
-## Installation
+## 📥 Installation
 
 ```bash
 dotnet add package ResultR
 ```
 
-## Quick Start
+## 🚀 Quick Start
 
 ### 1. Define a Request
 
@@ -137,7 +142,7 @@ public class UserController : ControllerBase
 }
 ```
 
-## Result Type
+## 📦 Result Type
 
 The `Result<T>` type provides a clean way to handle success and failure states:
 
@@ -175,7 +180,7 @@ public async ValueTask<Result<Result>> HandleAsync(DeleteUserRequest request, Ca
 }
 ```
 
-## Advanced Features
+## 🔧 Advanced Features
 
 ### Metadata Support
 
@@ -204,7 +209,7 @@ public class ValidatingHandler : IRequestHandler<MyRequest, MyResponse>
 }
 ```
 
-## Benchmarks
+## 📊 Benchmarks
 
 There are many great Mediator implementations out there. Here is a comparision between ResultR and some of the other popular ones:
 
@@ -233,7 +238,7 @@ cd src/ResultR.Benchmarks
 dotnet run -c Release
 ```
 
-## Why ResultR?
+## 🤔 Why ResultR?
 
 ### vs MediatR
 
@@ -249,20 +254,20 @@ dotnet run -c Release
 - **Type safety**: Compile-time guarantees for request/response matching
 - **Extensibility**: Optional hooks without forcing inheritance
 
-## Requirements
+## 📋 Requirements
 
 - .NET 10.0 or later
 - C# 14.0 or later
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## License
+## 📄 License
 
 ISC License - see LICENSE file for details
 
-## Roadmap
+## 🗺️ Roadmap
 
 - [x] Core mediator implementation
 - [x] Result types with metadata support
@@ -271,7 +276,7 @@ ISC License - see LICENSE file for details
 - [x] Performance benchmarks
 - [x] NuGet package publication
 
-## Support
+## 💬 Support
 
 - **Issues**: [GitHub Issues](https://github.com/AlanBarber/ResultR/issues)
 
