@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="ResultR/ResultR.csproj" />
+  <Project Path="ResultR.Tests/ResultR.Tests.csproj" />
+  <Project Path="ResultR.Benchmarks/ResultR.Benchmarks.csproj" />
+</Solution>
