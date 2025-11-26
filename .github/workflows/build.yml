@@ -41,3 +41,15 @@ jobs:
     - name: Publish to NuGet
       run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
       working-directory: src/ResultR
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          src/ResultR/nupkg/*.nupkg
+          src/ResultR/nupkg/*.snupkg
+        generate_release_notes: true
+        draft: false
+        prerelease: false
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
