@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
-using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ResultR;
@@ -13,8 +13,11 @@ public sealed class Mediator : IMediator
 {
     private readonly IServiceProvider _serviceProvider;
 
-    // Cache for compiled handler invokers keyed by (handlerType, responseType)
-    private static readonly ConcurrentDictionary<(Type HandlerType, Type ResponseType), object> _invokerCache = new();
+    // Cache for constructed handler types: (requestType, responseType) -> handlerInterfaceType
+    private static readonly ConcurrentDictionary<(Type, Type), Type> _handlerTypeCache = new();
+
+    // Cache for compiled pipeline executors: handlerType -> executor delegate
+    private static readonly ConcurrentDictionary<Type, Delegate> _pipelineExecutorCache = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Mediator"/> class.
@@ -26,162 +29,99 @@ public sealed class Mediator : IMediator
     }
 
     /// <inheritdoc />
-    public async Task<Result<TResponse>> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
+    public Task<Result<TResponse>> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 
         var requestType = request.GetType();
-        var handlerType = typeof(IRequestHandler<,>).MakeGenericType(requestType, typeof(TResponse));
+
+        // Get or create the handler interface type from cache
+        var handlerType = _handlerTypeCache.GetOrAdd(
+            (requestType, typeof(TResponse)),
+            static key => typeof(IRequestHandler<,>).MakeGenericType(key.Item1, key.Item2));
 
         var handler = _serviceProvider.GetService(handlerType)
             ?? throw new InvalidOperationException($"No handler registered for {requestType.Name}");
 
-        var concreteHandlerType = handler.GetType();
-        var invoker = (HandlerInvoker<TResponse>)_invokerCache.GetOrAdd(
-            (concreteHandlerType, typeof(TResponse)),
-            key => CreateInvoker<TResponse>(key.HandlerType, requestType));
+        // Get or create the compiled pipeline executor from cache
+        var executor = _pipelineExecutorCache.GetOrAdd(
+            handlerType,
+            static type => CreatePipelineExecutor(type));
 
-        return await invoker.InvokeAsync(handler, request, cancellationToken);
+        // Execute the cached delegate
+        return Unsafe.As<Func<object, object, CancellationToken, Task<Result<TResponse>>>>(executor)(
+            handler, request, cancellationToken);
     }
 
     /// <summary>
-    /// Creates a compiled invoker for the given handler type, caching all method lookups and delegate compilations.
+    /// Creates a compiled delegate that executes the pipeline for a specific handler type.
     /// </summary>
-    private static HandlerInvoker<TResponse> CreateInvoker<TResponse>(Type handlerType, Type requestType)
+    private static Delegate CreatePipelineExecutor(Type handlerType)
     {
-        // Build compiled delegates for each pipeline step
-        var validateDelegate = CreateValidateDelegate(handlerType, requestType);
-        var preHandleDelegate = CreatePreHandleDelegate(handlerType, requestType);
-        var handleDelegate = CreateHandleDelegate<TResponse>(handlerType, requestType);
-        var postHandleDelegate = CreatePostHandleDelegate<TResponse>(handlerType, requestType);
+        // Extract TRequest and TResponse from IRequestHandler<TRequest, TResponse>
+        var genericArgs = handlerType.GetGenericArguments();
+        var requestType = genericArgs[0];
+        var responseType = genericArgs[1];
 
-        return new HandlerInvoker<TResponse>(validateDelegate, preHandleDelegate, handleDelegate, postHandleDelegate);
-    }
+        // Create the generic method ExecutePipelineAsync<TRequest, TResponse>
+        var method = typeof(Mediator)
+            .GetMethod(nameof(ExecutePipelineAsync), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+            .MakeGenericMethod(requestType, responseType);
 
-    private static Func<object, object, Result?>? CreateValidateDelegate(Type handlerType, Type requestType)
-    {
-        var method = handlerType.GetMethod("Validate", [requestType]);
-        if (method is null) return null;
-
-        // Parameters: (object handler, object request) => Result?
-        var handlerParam = Expression.Parameter(typeof(object), "handler");
-        var requestParam = Expression.Parameter(typeof(object), "request");
-
-        var call = Expression.Call(
-            Expression.Convert(handlerParam, handlerType),
-            method,
-            Expression.Convert(requestParam, requestType));
-
-        var lambda = Expression.Lambda<Func<object, object, Result?>>(
-            Expression.Convert(call, typeof(Result)),
-            handlerParam, requestParam);
-
-        return lambda.Compile();
-    }
-
-    private static Action<object, object>? CreatePreHandleDelegate(Type handlerType, Type requestType)
-    {
-        var method = handlerType.GetMethod("OnPreHandle", [requestType]);
-        if (method is null) return null;
-
-        var handlerParam = Expression.Parameter(typeof(object), "handler");
-        var requestParam = Expression.Parameter(typeof(object), "request");
-
-        var call = Expression.Call(
-            Expression.Convert(handlerParam, handlerType),
-            method,
-            Expression.Convert(requestParam, requestType));
-
-        var lambda = Expression.Lambda<Action<object, object>>(call, handlerParam, requestParam);
-        return lambda.Compile();
-    }
-
-    private static Func<object, object, CancellationToken, Task<Result<TResponse>>> CreateHandleDelegate<TResponse>(Type handlerType, Type requestType)
-    {
-        var method = handlerType.GetMethod("Handle", [requestType, typeof(CancellationToken)])
-            ?? throw new InvalidOperationException($"Handler {handlerType.Name} does not have a Handle method");
-
+        // Build expression: (object handler, object request, CancellationToken ct) => 
+        //     ExecutePipelineAsync<TRequest, TResponse>((IRequestHandler<TRequest, TResponse>)handler, (TRequest)request, ct)
         var handlerParam = Expression.Parameter(typeof(object), "handler");
         var requestParam = Expression.Parameter(typeof(object), "request");
         var ctParam = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
 
         var call = Expression.Call(
-            Expression.Convert(handlerParam, handlerType),
             method,
+            Expression.Convert(handlerParam, handlerType),
             Expression.Convert(requestParam, requestType),
             ctParam);
 
-        var lambda = Expression.Lambda<Func<object, object, CancellationToken, Task<Result<TResponse>>>>(
-            call, handlerParam, requestParam, ctParam);
-
-        return lambda.Compile();
-    }
-
-    private static Action<object, object, Result<TResponse>>? CreatePostHandleDelegate<TResponse>(Type handlerType, Type requestType)
-    {
-        var method = handlerType.GetMethod("OnPostHandle", [requestType, typeof(Result<TResponse>)]);
-        if (method is null) return null;
-
-        var handlerParam = Expression.Parameter(typeof(object), "handler");
-        var requestParam = Expression.Parameter(typeof(object), "request");
-        var resultParam = Expression.Parameter(typeof(Result<TResponse>), "result");
-
-        var call = Expression.Call(
-            Expression.Convert(handlerParam, handlerType),
-            method,
-            Expression.Convert(requestParam, requestType),
-            resultParam);
-
-        var lambda = Expression.Lambda<Action<object, object, Result<TResponse>>>(call, handlerParam, requestParam, resultParam);
+        var lambda = Expression.Lambda(call, handlerParam, requestParam, ctParam);
         return lambda.Compile();
     }
 
     /// <summary>
-    /// Holds compiled delegates for a specific handler type, enabling fast pipeline execution.
+    /// Executes the handler pipeline with direct interface method calls.
+    /// Exceptions are caught and returned as failure results.
     /// </summary>
-    private sealed class HandlerInvoker<TResponse>
+    private static async Task<Result<TResponse>> ExecutePipelineAsync<TRequest, TResponse>(
+        IRequestHandler<TRequest, TResponse> handler,
+        TRequest request,
+        CancellationToken cancellationToken)
+        where TRequest : IRequest<TResponse>
     {
-        private readonly Func<object, object, Result?>? _validate;
-        private readonly Action<object, object>? _preHandle;
-        private readonly Func<object, object, CancellationToken, Task<Result<TResponse>>> _handle;
-        private readonly Action<object, object, Result<TResponse>>? _postHandle;
-
-        public HandlerInvoker(
-            Func<object, object, Result?>? validate,
-            Action<object, object>? preHandle,
-            Func<object, object, CancellationToken, Task<Result<TResponse>>> handle,
-            Action<object, object, Result<TResponse>>? postHandle)
+        try
         {
-            _validate = validate;
-            _preHandle = preHandle;
-            _handle = handle;
-            _postHandle = postHandle;
-        }
-
-        public async Task<Result<TResponse>> InvokeAsync(object handler, object request, CancellationToken cancellationToken)
-        {
-            // Step 1: Validate (if present)
-            if (_validate is not null)
+            // Step 1: Validate
+            var validationResult = await handler.ValidateAsync(request);
+            if (validationResult.IsFailure)
             {
-                var validationResult = _validate(handler, request);
-                if (validationResult?.IsFailure == true)
-                {
-                    return Result<TResponse>.Failure(
-                        validationResult.Error ?? "Validation failed",
-                        validationResult.Exception!);
-                }
+                return Result<TResponse>.Failure(validationResult.Error ?? "Validation failed");
             }
 
-            // Step 2: OnPreHandle (if present)
-            _preHandle?.Invoke(handler, request);
+            // Step 2: OnPreHandle
+            await handler.OnPreHandleAsync(request);
 
-            // Step 3: Handle (required)
-            var result = await _handle(handler, request, cancellationToken);
+            // Step 3: Handle
+            var result = await handler.HandleAsync(request, cancellationToken);
 
-            // Step 4: OnPostHandle (if present)
-            _postHandle?.Invoke(handler, request, result);
+            // Step 4: OnPostHandle
+            await handler.OnPostHandleAsync(request, result);
 
             return result;
+        }
+        catch (OperationCanceledException)
+        {
+            // Re-throw cancellation to allow proper async cancellation handling
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return Result<TResponse>.Failure(ex.Message, ex);
         }
     }
 }

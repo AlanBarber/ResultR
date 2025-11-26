@@ -10,6 +10,26 @@ public static class ServiceCollectionExtensions
 {
     /// <summary>
     /// Adds ResultR services to the specified <see cref="IServiceCollection"/>.
+    /// Registers the mediator and all request handlers found in the entry assembly.
+    /// </summary>
+    /// <param name="services">The service collection to add services to.</param>
+    /// <returns>The service collection for method chaining.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the entry assembly cannot be determined.</exception>
+    /// <remarks>
+    /// This overload automatically scans the entry assembly (main application).
+    /// For multi-project solutions with handlers in class libraries, use the overload that accepts assemblies.
+    /// </remarks>
+    public static IServiceCollection AddResultR(this IServiceCollection services)
+    {
+        var assembly = Assembly.GetEntryAssembly()
+            ?? throw new InvalidOperationException(
+                "Could not determine entry assembly. Use AddResultR(params Assembly[]) instead.");
+        
+        return services.AddResultR(assembly);
+    }
+
+    /// <summary>
+    /// Adds ResultR services to the specified <see cref="IServiceCollection"/>.
     /// Registers the mediator and all request handlers found in the specified assemblies.
     /// </summary>
     /// <param name="services">The service collection to add services to.</param>

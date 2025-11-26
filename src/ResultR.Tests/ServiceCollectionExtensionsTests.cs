@@ -8,9 +8,9 @@ public class ServiceCollectionExtensionsTests
 
     public class SampleHandler : IRequestHandler<SampleRequest, string>
     {
-        public Task<Result<string>> Handle(SampleRequest request, CancellationToken cancellationToken)
+        public ValueTask<Result<string>> HandleAsync(SampleRequest request, CancellationToken cancellationToken)
         {
-            return Task.FromResult(Result<string>.Success(request.Data.ToUpperInvariant()));
+            return new(Result<string>.Success(request.Data.ToUpperInvariant()));
         }
     }
 
@@ -51,11 +51,11 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddResultR_WithNoAssemblies_ThrowsArgumentException()
+    public void AddResultR_WithEmptyAssemblyArray_ThrowsArgumentException()
     {
         var services = new ServiceCollection();
 
-        Assert.Throws<ArgumentException>(() => services.AddResultR());
+        Assert.Throws<ArgumentException>(() => services.AddResultR(Array.Empty<System.Reflection.Assembly>()));
     }
 
     [Fact]

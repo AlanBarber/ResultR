@@ -5,9 +5,9 @@ public record ResultRSimpleRequest(int Value) : IRequest<int>;
 
 public class ResultRSimpleHandler : IRequestHandler<ResultRSimpleRequest, int>
 {
-    public Task<Result<int>> Handle(ResultRSimpleRequest request, CancellationToken cancellationToken)
+    public ValueTask<Result<int>> HandleAsync(ResultRSimpleRequest request, CancellationToken cancellationToken)
     {
-        return Task.FromResult(Result<int>.Success(request.Value * 2));
+        return new(Result<int>.Success(request.Value * 2));
     }
 }
 
@@ -16,14 +16,14 @@ public record ResultRValidatedRequest(int Value) : IRequest<int>;
 
 public class ResultRValidatedHandler : IRequestHandler<ResultRValidatedRequest, int>
 {
-    public Result Validate(ResultRValidatedRequest request)
+    public ValueTask<Result> ValidateAsync(ResultRValidatedRequest request)
     {
-        return request.Value >= 0 ? Result.Success() : Result.Failure("Value must be non-negative");
+        return new(request.Value >= 0 ? Result.Success() : Result.Failure("Value must be non-negative"));
     }
 
-    public Task<Result<int>> Handle(ResultRValidatedRequest request, CancellationToken cancellationToken)
+    public ValueTask<Result<int>> HandleAsync(ResultRValidatedRequest request, CancellationToken cancellationToken)
     {
-        return Task.FromResult(Result<int>.Success(request.Value * 2));
+        return new(Result<int>.Success(request.Value * 2));
     }
 }
 
@@ -32,23 +32,25 @@ public record ResultRFullPipelineRequest(int Value) : IRequest<int>;
 
 public class ResultRFullPipelineHandler : IRequestHandler<ResultRFullPipelineRequest, int>
 {
-    public Result Validate(ResultRFullPipelineRequest request)
+    public ValueTask<Result> ValidateAsync(ResultRFullPipelineRequest request)
     {
-        return Result.Success();
+        return new(Result.Success());
     }
 
-    public void OnPreHandle(ResultRFullPipelineRequest request)
+    public ValueTask OnPreHandleAsync(ResultRFullPipelineRequest request)
     {
         // Pre-handle hook
+        return default;
     }
 
-    public Task<Result<int>> Handle(ResultRFullPipelineRequest request, CancellationToken cancellationToken)
+    public ValueTask<Result<int>> HandleAsync(ResultRFullPipelineRequest request, CancellationToken cancellationToken)
     {
-        return Task.FromResult(Result<int>.Success(request.Value * 2));
+        return new(Result<int>.Success(request.Value * 2));
     }
 
-    public void OnPostHandle(ResultRFullPipelineRequest request, Result<int> result)
+    public ValueTask OnPostHandleAsync(ResultRFullPipelineRequest request, Result<int> result)
     {
         // Post-handle hook
+        return default;
     }
 }

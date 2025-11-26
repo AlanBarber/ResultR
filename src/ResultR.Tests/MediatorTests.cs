@@ -10,9 +10,9 @@ public class MediatorTests
 
     public class TestHandler : IRequestHandler<TestRequest, string>
     {
-        public Task<Result<string>> Handle(TestRequest request, CancellationToken cancellationToken)
+        public ValueTask<Result<string>> HandleAsync(TestRequest request, CancellationToken cancellationToken)
         {
-            return Task.FromResult(Result<string>.Success($"Handled: {request.Value}"));
+            return new(Result<string>.Success($"Handled: {request.Value}"));
         }
     }
 
@@ -25,28 +25,30 @@ public class MediatorTests
         public bool PostHandleCalled { get; private set; }
         public Result<bool>? PostHandleResult { get; private set; }
 
-        public Result Validate(ValidatedRequest request)
+        public ValueTask<Result> ValidateAsync(ValidatedRequest request)
         {
             ValidateCalled = true;
-            return string.IsNullOrEmpty(request.Email)
+            return new(string.IsNullOrEmpty(request.Email)
                 ? Result.Failure("Email is required")
-                : Result.Success();
+                : Result.Success());
         }
 
-        public void OnPreHandle(ValidatedRequest request)
+        public ValueTask OnPreHandleAsync(ValidatedRequest request)
         {
             PreHandleCalled = true;
+            return default;
         }
 
-        public Task<Result<bool>> Handle(ValidatedRequest request, CancellationToken cancellationToken)
+        public ValueTask<Result<bool>> HandleAsync(ValidatedRequest request, CancellationToken cancellationToken)
         {
-            return Task.FromResult(Result<bool>.Success(true));
+            return new(Result<bool>.Success(true));
         }
 
-        public void OnPostHandle(ValidatedRequest request, Result<bool> result)
+        public ValueTask OnPostHandleAsync(ValidatedRequest request, Result<bool> result)
         {
             PostHandleCalled = true;
             PostHandleResult = result;
+            return default;
         }
     }
 
@@ -56,17 +58,27 @@ public class MediatorTests
     {
         public bool HandleCalled { get; private set; }
 
-        public Result Validate(FailingValidationRequest request)
+        public ValueTask<Result> ValidateAsync(FailingValidationRequest request)
         {
-            return request.Value < 0
+            return new(request.Value < 0
                 ? Result.Failure("Value must be non-negative")
-                : Result.Success();
+                : Result.Success());
         }
 
-        public Task<Result<int>> Handle(FailingValidationRequest request, CancellationToken cancellationToken)
+        public ValueTask<Result<int>> HandleAsync(FailingValidationRequest request, CancellationToken cancellationToken)
         {
             HandleCalled = true;
-            return Task.FromResult(Result<int>.Success(request.Value));
+            return new(Result<int>.Success(request.Value));
+        }
+    }
+
+    public record ThrowingRequest(string Message) : IRequest<string>;
+
+    public class ThrowingHandler : IRequestHandler<ThrowingRequest, string>
+    {
+        public ValueTask<Result<string>> HandleAsync(ThrowingRequest request, CancellationToken cancellationToken)
+        {
+            throw new InvalidOperationException(request.Message);
         }
     }
 
@@ -174,5 +186,37 @@ public class MediatorTests
         Assert.True(result.IsSuccess);
         Assert.Equal(42, result.Value);
         Assert.True(handler.HandleCalled);
+    }
+
+    [Fact]
+    public async Task Send_ReturnsFailureResult_WhenHandlerThrowsException()
+    {
+        var mediator = CreateMediator(s => s.AddScoped<IRequestHandler<ThrowingRequest, string>, ThrowingHandler>());
+        var request = new ThrowingRequest("Something went wrong");
+
+        var result = await mediator.Send(request);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("Something went wrong", result.Error);
+        Assert.NotNull(result.Exception);
+        Assert.IsType<InvalidOperationException>(result.Exception);
+    }
+
+    [Fact]
+    public async Task Send_RethrowsOperationCanceledException()
+    {
+        var mediator = CreateMediator(s => s.AddScoped<IRequestHandler<ThrowingRequest, string>>(_ =>
+            new CancellingHandler()));
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            mediator.Send(new ThrowingRequest("cancel")));
+    }
+
+    private class CancellingHandler : IRequestHandler<ThrowingRequest, string>
+    {
+        public ValueTask<Result<string>> HandleAsync(ThrowingRequest request, CancellationToken cancellationToken)
+        {
+            throw new OperationCanceledException();
+        }
     }
 }
