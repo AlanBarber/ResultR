@@ -2,13 +2,13 @@ namespace ResultR;
 
 /// <summary>
 /// Defines a handler for a request that returns a response wrapped in a <see cref="Result{TResponse}"/>.
-/// Handlers can optionally override lifecycle hooks for validation and pre/post processing.
+/// Handlers can optionally override lifecycle hooks for validation and before/after processing.
 /// </summary>
 /// <typeparam name="TRequest">The type of request being handled.</typeparam>
 /// <typeparam name="TResponse">The type of response returned by the handler.</typeparam>
 /// <remarks>
 /// <para>
-/// The mediator invokes the following pipeline in order:
+/// The dispatcher invokes the following pipeline in order:
 /// </para>
 /// <list type="bullet">
 ///   <item>
@@ -16,7 +16,7 @@ namespace ResultR;
 ///     <description>Called before handling. If it returns a failure, the pipeline short-circuits.</description>
 ///   </item>
 ///   <item>
-///     <term><see cref="OnPreHandleAsync"/></term>
+///     <term><see cref="BeforeHandleAsync"/></term>
 ///     <description>Called after validation passes, before the main handler executes.</description>
 ///   </item>
 ///   <item>
@@ -24,7 +24,7 @@ namespace ResultR;
 ///     <description>The main handler logic.</description>
 ///   </item>
 ///   <item>
-///     <term><see cref="OnPostHandleAsync"/></term>
+///     <term><see cref="AfterHandleAsync"/></term>
 ///     <description>Called after the main handler executes, regardless of success or failure.</description>
 ///   </item>
 /// </list>
@@ -44,7 +44,7 @@ public interface IRequestHandler<TRequest, TResponse>
     /// </summary>
     /// <param name="request">The request being handled.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    virtual ValueTask OnPreHandleAsync(TRequest request) => default;
+    virtual ValueTask BeforeHandleAsync(TRequest request) => default;
 
     /// <summary>
     /// Handles the request and returns a result containing the response.
@@ -60,5 +60,5 @@ public interface IRequestHandler<TRequest, TResponse>
     /// <param name="request">The request that was handled.</param>
     /// <param name="result">The result from the handler.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    virtual ValueTask OnPostHandleAsync(TRequest request, Result<TResponse> result) => default;
+    virtual ValueTask AfterHandleAsync(TRequest request, Result<TResponse> result) => default;
 }

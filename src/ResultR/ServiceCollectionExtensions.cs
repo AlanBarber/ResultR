@@ -10,7 +10,7 @@ public static class ServiceCollectionExtensions
 {
     /// <summary>
     /// Adds ResultR services to the specified <see cref="IServiceCollection"/>.
-    /// Registers the mediator and all request handlers found in the entry assembly.
+    /// Registers the dispatcher and all request handlers found in the entry assembly.
     /// </summary>
     /// <param name="services">The service collection to add services to.</param>
     /// <returns>The service collection for method chaining.</returns>
@@ -30,7 +30,7 @@ public static class ServiceCollectionExtensions
 
     /// <summary>
     /// Adds ResultR services to the specified <see cref="IServiceCollection"/>.
-    /// Registers the mediator and all request handlers found in the specified assemblies.
+    /// Registers the dispatcher and all request handlers found in the specified assemblies.
     /// </summary>
     /// <param name="services">The service collection to add services to.</param>
     /// <param name="assemblies">The assemblies to scan for request handlers.</param>
@@ -44,8 +44,8 @@ public static class ServiceCollectionExtensions
             throw new ArgumentException("At least one assembly must be provided.", nameof(assemblies));
         }
 
-        // Register the mediator
-        services.AddScoped<IMediator, Mediator>();
+        // Register the dispatcher
+        services.AddScoped<IDispatcher, Dispatcher>();
 
         // Scan and register all handlers
         foreach (var assembly in assemblies)
@@ -56,16 +56,28 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>
+    /// Scans an assembly for classes implementing <see cref="IRequestHandler{TRequest, TResponse}"/>
+    /// and registers them with the DI container as scoped services.
+    /// </summary>
+    /// <param name="services">The service collection to register handlers with.</param>
+    /// <param name="assembly">The assembly to scan for handler implementations.</param>
+    /// <remarks>
+    /// Only concrete (non-abstract) classes are registered. Each handler is registered
+    /// against its closed generic interface type (e.g., IRequestHandler{CreateUserRequest, User}).
+    /// </remarks>
     private static void RegisterHandlersFromAssembly(IServiceCollection services, Assembly assembly)
     {
         var handlerInterfaceType = typeof(IRequestHandler<,>);
 
+        // Find all concrete classes that implement IRequestHandler<,>
         var handlerTypes = assembly.GetTypes()
             .Where(t => t is { IsClass: true, IsAbstract: false })
             .SelectMany(t => t.GetInterfaces()
                 .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == handlerInterfaceType)
                 .Select(i => new { Implementation = t, Interface = i }));
 
+        // Register each handler as scoped (new instance per request scope)
         foreach (var handler in handlerTypes)
         {
             services.AddScoped(handler.Interface, handler.Implementation);

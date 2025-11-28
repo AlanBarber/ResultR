@@ -1,4 +1,4 @@
 using BenchmarkDotNet.Running;
 using ResultR.Benchmarks;
 
-BenchmarkRunner.Run<MediatorBenchmarks>();
+BenchmarkRunner.Run<DispatcherBenchmarks>();

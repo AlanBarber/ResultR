@@ -15,17 +15,17 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddResultR_RegistersMediator()
+    public void AddResultR_RegistersDispatcher()
     {
         var services = new ServiceCollection();
 
         services.AddResultR(typeof(ServiceCollectionExtensionsTests).Assembly);
 
         var provider = services.BuildServiceProvider();
-        var mediator = provider.GetService<IMediator>();
+        var dispatcher = provider.GetService<IDispatcher>();
 
-        Assert.NotNull(mediator);
-        Assert.IsType<Mediator>(mediator);
+        Assert.NotNull(dispatcher);
+        Assert.IsType<Dispatcher>(dispatcher);
     }
 
     [Fact]
@@ -59,14 +59,14 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public async Task AddResultR_RegisteredHandlers_WorkWithMediator()
+    public async Task AddResultR_RegisteredHandlers_WorkWithDispatcher()
     {
         var services = new ServiceCollection();
         services.AddResultR(typeof(ServiceCollectionExtensionsTests).Assembly);
         var provider = services.BuildServiceProvider();
-        var mediator = provider.GetRequiredService<IMediator>();
+        var dispatcher = provider.GetRequiredService<IDispatcher>();
 
-        var result = await mediator.Send(new SampleRequest("hello"));
+        var result = await dispatcher.Dispatch(new SampleRequest("hello"));
 
         Assert.True(result.IsSuccess);
         Assert.Equal("HELLO", result.Value);

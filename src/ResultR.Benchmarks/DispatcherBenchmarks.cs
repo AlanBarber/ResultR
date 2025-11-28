@@ -12,16 +12,16 @@ namespace ResultR.Benchmarks;
 [MemoryDiagnoser]
 [Orderer(SummaryOrderPolicy.FastestToSlowest)]
 [RankColumn]
-public class MediatorBenchmarks
+public class DispatcherBenchmarks
 {
     private IServiceProvider _resultRProvider = null!;
     private IServiceProvider _mediatRProvider = null!;
     private IServiceProvider _dispatchRProvider = null!;
     private IServiceProvider _mediatorSGProvider = null!;
 
-    private ResultR.IMediator _resultRMediator = null!;
+    private ResultR.IDispatcher _resultRDispatcher = null!;
     private MediatR.IMediator _mediatRMediator = null!;
-    private DispatchR.IMediator _dispatchRMediator = null!;
+    private global::DispatchR.IMediator _dispatchRMediator = null!;
     private global::Mediator.IMediator _mediatorSGMediator = null!;
 
     // Static request instances for Mediator.SourceGenerator (avoids allocation in benchmark)
@@ -34,21 +34,21 @@ public class MediatorBenchmarks
     {
         // ResultR setup
         var resultRServices = new ServiceCollection();
-        resultRServices.AddResultR(typeof(MediatorBenchmarks).Assembly);
+        resultRServices.AddResultR(typeof(DispatcherBenchmarks).Assembly);
         _resultRProvider = resultRServices.BuildServiceProvider();
-        _resultRMediator = _resultRProvider.GetRequiredService<ResultR.IMediator>();
+        _resultRDispatcher = _resultRProvider.GetRequiredService<ResultR.IDispatcher>();
 
         // MediatR setup
         var mediatRServices = new ServiceCollection();
-        mediatRServices.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(MediatorBenchmarks).Assembly));
+        mediatRServices.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DispatcherBenchmarks).Assembly));
         _mediatRProvider = mediatRServices.BuildServiceProvider();
         _mediatRMediator = _mediatRProvider.GetRequiredService<MediatR.IMediator>();
 
         // DispatchR setup
         var dispatchRServices = new ServiceCollection();
-        dispatchRServices.AddDispatchR(typeof(MediatorBenchmarks).Assembly);
+        dispatchRServices.AddDispatchR(typeof(DispatcherBenchmarks).Assembly);
         _dispatchRProvider = dispatchRServices.BuildServiceProvider();
-        _dispatchRMediator = _dispatchRProvider.GetRequiredService<DispatchR.IMediator>();
+        _dispatchRMediator = _dispatchRProvider.GetRequiredService<global::DispatchR.IMediator>();
 
         // Mediator.SourceGenerator setup
         var mediatorSGServices = new ServiceCollection();
@@ -71,7 +71,7 @@ public class MediatorBenchmarks
     [Benchmark(Description = "ResultR - Simple")]
     public async Task<int> ResultR_Simple()
     {
-        var result = await _resultRMediator.Send(new ResultRSimpleRequest(42));
+        var result = await _resultRDispatcher.Dispatch(new ResultRSimpleRequest(42));
         return result.Value;
     }
 
@@ -100,7 +100,7 @@ public class MediatorBenchmarks
     [Benchmark(Description = "ResultR - With Validation")]
     public async Task<int> ResultR_Validated()
     {
-        var result = await _resultRMediator.Send(new ResultRValidatedRequest(42));
+        var result = await _resultRDispatcher.Dispatch(new ResultRValidatedRequest(42));
         return result.Value;
     }
 
@@ -129,7 +129,7 @@ public class MediatorBenchmarks
     [Benchmark(Description = "ResultR - Full Pipeline")]
     public async Task<int> ResultR_FullPipeline()
     {
-        var result = await _resultRMediator.Send(new ResultRFullPipelineRequest(42));
+        var result = await _resultRDispatcher.Dispatch(new ResultRFullPipelineRequest(42));
         return result.Value;
     }
 

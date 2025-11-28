@@ -6,10 +6,17 @@ using Microsoft.Extensions.DependencyInjection;
 namespace ResultR;
 
 /// <summary>
-/// Default implementation of <see cref="IMediator"/> that dispatches requests through a pipeline
-/// consisting of validation, pre-handle, handle, and post-handle phases.
+/// Default implementation of <see cref="IDispatcher"/> that routes requests through a pipeline
+/// consisting of validation, before-handle, handle, and after-handle phases.
 /// </summary>
-public sealed class Mediator : IMediator
+/// <remarks>
+/// <para>
+/// This class implements a request/response dispatcher pattern, routing each request to exactly
+/// one handler. Despite common naming conventions in the .NET ecosystem (e.g., MediatR), this is
+/// technically closer to a Command pattern or in-process message bus than the classic GoF Mediator pattern.
+/// </para>
+/// </remarks>
+public sealed class Dispatcher : IDispatcher
 {
     private readonly IServiceProvider _serviceProvider;
 
@@ -20,16 +27,16 @@ public sealed class Mediator : IMediator
     private static readonly ConcurrentDictionary<Type, Delegate> _pipelineExecutorCache = new();
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Mediator"/> class.
+    /// Initializes a new instance of the <see cref="Dispatcher"/> class.
     /// </summary>
     /// <param name="serviceProvider">The service provider used to resolve handlers.</param>
-    public Mediator(IServiceProvider serviceProvider)
+    public Dispatcher(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
     }
 
     /// <inheritdoc />
-    public Task<Result<TResponse>> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
+    public Task<Result<TResponse>> Dispatch<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 
@@ -55,7 +62,11 @@ public sealed class Mediator : IMediator
 
     /// <summary>
     /// Creates a compiled delegate that executes the pipeline for a specific handler type.
+    /// Uses expression trees to build a strongly-typed delegate at runtime, avoiding reflection
+    /// on every request. The compiled delegate is cached for subsequent calls.
     /// </summary>
+    /// <param name="handlerType">The closed generic handler interface type (e.g., IRequestHandler{MyRequest, MyResponse}).</param>
+    /// <returns>A delegate that can execute the pipeline for the given handler type.</returns>
     private static Delegate CreatePipelineExecutor(Type handlerType)
     {
         // Extract TRequest and TResponse from IRequestHandler<TRequest, TResponse>
@@ -64,7 +75,7 @@ public sealed class Mediator : IMediator
         var responseType = genericArgs[1];
 
         // Create the generic method ExecutePipelineAsync<TRequest, TResponse>
-        var method = typeof(Mediator)
+        var method = typeof(Dispatcher)
             .GetMethod(nameof(ExecutePipelineAsync), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
             .MakeGenericMethod(requestType, responseType);
 
@@ -85,9 +96,21 @@ public sealed class Mediator : IMediator
     }
 
     /// <summary>
-    /// Executes the handler pipeline with direct interface method calls.
-    /// Exceptions are caught and returned as failure results.
+    /// Executes the full handler pipeline: Validate → BeforeHandle → Handle → AfterHandle.
     /// </summary>
+    /// <remarks>
+    /// <para>The pipeline executes in order:</para>
+    /// <list type="number">
+    ///   <item>ValidateAsync - if validation fails, returns early with failure result</item>
+    ///   <item>BeforeHandleAsync - runs pre-processing logic (e.g., logging)</item>
+    ///   <item>HandleAsync - executes the main business logic</item>
+    ///   <item>AfterHandleAsync - runs post-processing logic (e.g., logging, cleanup)</item>
+    /// </list>
+    /// <para>
+    /// Any exception (except OperationCanceledException) is caught and
+    /// converted to a failure result with the exception attached.
+    /// </para>
+    /// </remarks>
     private static async Task<Result<TResponse>> ExecutePipelineAsync<TRequest, TResponse>(
         IRequestHandler<TRequest, TResponse> handler,
         TRequest request,
@@ -103,14 +126,14 @@ public sealed class Mediator : IMediator
                 return Result<TResponse>.Failure(validationResult.Error ?? "Validation failed");
             }
 
-            // Step 2: OnPreHandle
-            await handler.OnPreHandleAsync(request);
+            // Step 2: BeforeHandle
+            await handler.BeforeHandleAsync(request);
 
             // Step 3: Handle
             var result = await handler.HandleAsync(request, cancellationToken);
 
-            // Step 4: OnPostHandle
-            await handler.OnPostHandleAsync(request, result);
+            // Step 4: AfterHandle
+            await handler.AfterHandleAsync(request, result);
 
             return result;
         }

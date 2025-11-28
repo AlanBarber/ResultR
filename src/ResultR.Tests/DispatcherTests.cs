@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ResultR.Tests;
 
-public class MediatorTests
+public class DispatcherTests
 {
     #region Test Fixtures
 
@@ -33,7 +33,7 @@ public class MediatorTests
                 : Result.Success());
         }
 
-        public ValueTask OnPreHandleAsync(ValidatedRequest request)
+        public ValueTask BeforeHandleAsync(ValidatedRequest request)
         {
             PreHandleCalled = true;
             return default;
@@ -44,7 +44,7 @@ public class MediatorTests
             return new(Result<bool>.Success(true));
         }
 
-        public ValueTask OnPostHandleAsync(ValidatedRequest request, Result<bool> result)
+        public ValueTask AfterHandleAsync(ValidatedRequest request, Result<bool> result)
         {
             PostHandleCalled = true;
             PostHandleResult = result;
@@ -84,76 +84,76 @@ public class MediatorTests
 
     #endregion
 
-    private static IMediator CreateMediator(Action<IServiceCollection> configure)
+    private static IDispatcher CreateDispatcher(Action<IServiceCollection> configure)
     {
         var services = new ServiceCollection();
         configure(services);
-        services.AddScoped<IMediator, Mediator>();
+        services.AddScoped<IDispatcher, Dispatcher>();
         var provider = services.BuildServiceProvider();
-        return provider.GetRequiredService<IMediator>();
+        return provider.GetRequiredService<IDispatcher>();
     }
 
     [Fact]
-    public async Task Send_WithValidHandler_ReturnsSuccessResult()
+    public async Task Dispatch_WithValidHandler_ReturnsSuccessResult()
     {
-        var mediator = CreateMediator(s => s.AddScoped<IRequestHandler<TestRequest, string>, TestHandler>());
+        var dispatcher = CreateDispatcher(s => s.AddScoped<IRequestHandler<TestRequest, string>, TestHandler>());
         var request = new TestRequest("Hello");
 
-        var result = await mediator.Send(request);
+        var result = await dispatcher.Dispatch(request);
 
         Assert.True(result.IsSuccess);
         Assert.Equal("Handled: Hello", result.Value);
     }
 
     [Fact]
-    public async Task Send_WithNoHandler_ThrowsException()
+    public async Task Dispatch_WithNoHandler_ThrowsException()
     {
-        var mediator = CreateMediator(_ => { });
+        var dispatcher = CreateDispatcher(_ => { });
         var request = new TestRequest("Hello");
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => mediator.Send(request));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => dispatcher.Dispatch(request));
     }
 
     [Fact]
-    public async Task Send_WithNullRequest_ThrowsArgumentNullException()
+    public async Task Dispatch_WithNullRequest_ThrowsArgumentNullException()
     {
-        var mediator = CreateMediator(s => s.AddScoped<IRequestHandler<TestRequest, string>, TestHandler>());
+        var dispatcher = CreateDispatcher(s => s.AddScoped<IRequestHandler<TestRequest, string>, TestHandler>());
 
-        await Assert.ThrowsAsync<ArgumentNullException>(() => mediator.Send<string>(null!));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => dispatcher.Dispatch<string>(null!));
     }
 
     [Fact]
-    public async Task Send_CallsValidateMethod_WhenPresent()
+    public async Task Dispatch_CallsValidateMethod_WhenPresent()
     {
         var handler = new ValidatedHandler();
-        var mediator = CreateMediator(s => s.AddSingleton<IRequestHandler<ValidatedRequest, bool>>(handler));
+        var dispatcher = CreateDispatcher(s => s.AddSingleton<IRequestHandler<ValidatedRequest, bool>>(handler));
         var request = new ValidatedRequest("test@example.com");
 
-        await mediator.Send(request);
+        await dispatcher.Dispatch(request);
 
         Assert.True(handler.ValidateCalled);
     }
 
     [Fact]
-    public async Task Send_CallsPreHandleMethod_WhenPresent()
+    public async Task Dispatch_CallsBeforeHandleMethod_WhenPresent()
     {
         var handler = new ValidatedHandler();
-        var mediator = CreateMediator(s => s.AddSingleton<IRequestHandler<ValidatedRequest, bool>>(handler));
+        var dispatcher = CreateDispatcher(s => s.AddSingleton<IRequestHandler<ValidatedRequest, bool>>(handler));
         var request = new ValidatedRequest("test@example.com");
 
-        await mediator.Send(request);
+        await dispatcher.Dispatch(request);
 
         Assert.True(handler.PreHandleCalled);
     }
 
     [Fact]
-    public async Task Send_CallsPostHandleMethod_WhenPresent()
+    public async Task Dispatch_CallsAfterHandleMethod_WhenPresent()
     {
         var handler = new ValidatedHandler();
-        var mediator = CreateMediator(s => s.AddSingleton<IRequestHandler<ValidatedRequest, bool>>(handler));
+        var dispatcher = CreateDispatcher(s => s.AddSingleton<IRequestHandler<ValidatedRequest, bool>>(handler));
         var request = new ValidatedRequest("test@example.com");
 
-        await mediator.Send(request);
+        await dispatcher.Dispatch(request);
 
         Assert.True(handler.PostHandleCalled);
         Assert.NotNull(handler.PostHandleResult);
@@ -161,13 +161,13 @@ public class MediatorTests
     }
 
     [Fact]
-    public async Task Send_ShortCircuits_WhenValidationFails()
+    public async Task Dispatch_ShortCircuits_WhenValidationFails()
     {
         var handler = new FailingValidationHandler();
-        var mediator = CreateMediator(s => s.AddSingleton<IRequestHandler<FailingValidationRequest, int>>(handler));
+        var dispatcher = CreateDispatcher(s => s.AddSingleton<IRequestHandler<FailingValidationRequest, int>>(handler));
         var request = new FailingValidationRequest(-1);
 
-        var result = await mediator.Send(request);
+        var result = await dispatcher.Dispatch(request);
 
         Assert.True(result.IsFailure);
         Assert.Equal("Value must be non-negative", result.Error);
@@ -175,13 +175,13 @@ public class MediatorTests
     }
 
     [Fact]
-    public async Task Send_ExecutesHandle_WhenValidationPasses()
+    public async Task Dispatch_ExecutesHandle_WhenValidationPasses()
     {
         var handler = new FailingValidationHandler();
-        var mediator = CreateMediator(s => s.AddSingleton<IRequestHandler<FailingValidationRequest, int>>(handler));
+        var dispatcher = CreateDispatcher(s => s.AddSingleton<IRequestHandler<FailingValidationRequest, int>>(handler));
         var request = new FailingValidationRequest(42);
 
-        var result = await mediator.Send(request);
+        var result = await dispatcher.Dispatch(request);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(42, result.Value);
@@ -189,12 +189,12 @@ public class MediatorTests
     }
 
     [Fact]
-    public async Task Send_ReturnsFailureResult_WhenHandlerThrowsException()
+    public async Task Dispatch_ReturnsFailureResult_WhenHandlerThrowsException()
     {
-        var mediator = CreateMediator(s => s.AddScoped<IRequestHandler<ThrowingRequest, string>, ThrowingHandler>());
+        var dispatcher = CreateDispatcher(s => s.AddScoped<IRequestHandler<ThrowingRequest, string>, ThrowingHandler>());
         var request = new ThrowingRequest("Something went wrong");
 
-        var result = await mediator.Send(request);
+        var result = await dispatcher.Dispatch(request);
 
         Assert.True(result.IsFailure);
         Assert.Equal("Something went wrong", result.Error);
@@ -203,13 +203,13 @@ public class MediatorTests
     }
 
     [Fact]
-    public async Task Send_RethrowsOperationCanceledException()
+    public async Task Dispatch_RethrowsOperationCanceledException()
     {
-        var mediator = CreateMediator(s => s.AddScoped<IRequestHandler<ThrowingRequest, string>>(_ =>
+        var dispatcher = CreateDispatcher(s => s.AddScoped<IRequestHandler<ThrowingRequest, string>>(_ =>
             new CancellingHandler()));
 
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
-            mediator.Send(new ThrowingRequest("cancel")));
+            dispatcher.Dispatch(new ThrowingRequest("cancel")));
     }
 
     private class CancellingHandler : IRequestHandler<ThrowingRequest, string>

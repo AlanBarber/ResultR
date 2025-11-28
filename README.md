@@ -7,17 +7,25 @@
 [![NuGet Downloads](https://img.shields.io/nuget/dt/ResultR?label=nuget%20downloads)](https://www.nuget.org/packages/ResultR)
 [![GitHub License](https://img.shields.io/github/license/alanbarber/ResultR)](https://github.com/AlanBarber/ResultR/blob/main/LICENSE)
 
-A lightweight, opinionated C# mediator library focused on simplicity and clean design.
+A lightweight, opinionated mediator library for C#. Provides a unified IRequest and IRequestHandler pattern with built-in result wrapping, optional validation, and per-request logging.
 
 ## 📖 Overview
 
-ResultR provides a minimal yet powerful mediator pattern implementation with built-in result handling, validation, and request lifecycle hooks. It's designed as a modern alternative to MediatR with a smaller surface area and a clearer result pattern.
+ResultR provides a minimal yet powerful request/response dispatcher with built-in result handling, validation, and request lifecycle hooks. It's designed as a modern alternative to MediatR with a smaller surface area and a clearer result pattern.
+
+### Why do you call it a Dispatcher? Isn't this just a another Mediator library?
+
+Yes and no. While ResultR serves the same purpose as MediatR and similar libraries, we chose different naming to be more technically accurate. The classic GoF Mediator pattern describes an object that coordinates bidirectional communication between multiple colleague objects - think of a chat room where participants talk *through* the mediator to each other.
+
+What these libraries, and ResultR specifically, actually do is simpler: route a request to exactly one handler and return a response. There's no inter-handler communication. This is closer to a **command pattern** or **in-process message bus** pattern.
+
+We chose `IDispatcher` and `Dispatcher` because the name honestly describes the behavior: requests go in, get dispatched to a handler, and results come out.
 
 ## ✨ Key Features
 
 - 🔌 **Single Interface Pattern**: Uses only `IRequest<TResponse>` and `IRequestHandler<TRequest, TResponse>` - no distinction between commands and queries
 - 📦 **Unified Result Type**: All operations return `Result<T>` or `Result`, supporting success/failure states, exception capture, and optional metadata
-- 🪝 **Optional Inline Hooks**: Handlers can override `ValidateAsync()`, `OnPreHandleAsync()`, and `OnPostHandleAsync()` methods without requiring base classes or separate interfaces
+- 🪝 **Optional Inline Hooks**: Handlers can override `ValidateAsync()`, `BeforeHandleAsync()`, and `AfterHandleAsync()` methods without requiring base classes or separate interfaces
 - 📝 **Request-Specific Logging**: Built-in support for per-request logging via `ILoggerFactory`
 - ⚡ **Minimal Configuration**: Simple DI integration with minimal setup
 - 🔒 **Strong Typing**: Full type safety throughout the pipeline
@@ -35,9 +43,9 @@ ResultR prioritizes:
 Each request flows through a simple, predictable pipeline:
 
 1. ✅ **Validation** - Calls `ValidateAsync()` if overridden, short-circuits on failure
-2. 🚀 **Pre-Handle** - Invokes `OnPreHandleAsync()` for optional logging or setup
+2. 🚀 **Before Handle** - Invokes `BeforeHandleAsync()` for optional logging or setup
 3. ⚙️ **Handle** - Executes the core `HandleAsync()` logic
-4. 🏁 **Post-Handle** - Invokes `OnPostHandleAsync()` for logging or cleanup
+4. 🏁 **After Handle** - Invokes `AfterHandleAsync()` for logging or cleanup
 5. 🛡️ **Exception Handling** - Any exceptions are caught and returned as `Result.Failure` with the exception attached
 
 ## 📥 Installation
@@ -80,8 +88,8 @@ public class CreateUserHandler : IRequestHandler<CreateUserRequest, User>
         return new(Result.Success());
     }
 
-    // Optional: Pre-handle hook (override virtual method)
-    public ValueTask OnPreHandleAsync(CreateUserRequest request)
+    // Optional: Before handle hook (override virtual method)
+    public ValueTask BeforeHandleAsync(CreateUserRequest request)
     {
         _logger.LogInformation("Creating user with email: {Email}", request.Email);
         return default;
@@ -96,8 +104,8 @@ public class CreateUserHandler : IRequestHandler<CreateUserRequest, User>
         return Result<User>.Success(user);
     }
 
-    // Optional: Post-handle hook (override virtual method)
-    public ValueTask OnPostHandleAsync(CreateUserRequest request, Result<User> result)
+    // Optional: After handle hook (override virtual method)
+    public ValueTask AfterHandleAsync(CreateUserRequest request, Result<User> result)
     {
         if (result.IsSuccess)
             _logger.LogInformation("User created successfully: {UserId}", result.Value.Id);
@@ -120,22 +128,22 @@ services.AddResultR(
     typeof(MyHandlers).Assembly);
 ```
 
-### 4. Send Requests
+### 4. Dispatch Requests
 
 ```csharp
 public class UserController : ControllerBase
 {
-    private readonly IMediator _mediator;
+    private readonly IDispatcher _dispatcher;
 
-    public UserController(IMediator mediator)
+    public UserController(IDispatcher dispatcher)
     {
-        _mediator = mediator;
+        _dispatcher = dispatcher;
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateUser(CreateUserRequest request)
     {
-        var result = await _mediator.Send(request);
+        var result = await _dispatcher.Dispatch(request);
         
         return result.IsSuccess 
             ? Ok(result.Value) 
@@ -213,7 +221,7 @@ public class ValidatingHandler : IRequestHandler<MyRequest, MyResponse>
 
 ## 📊 Benchmarks
 
-There are many great Mediator implementations out there. Here is a comparision between ResultR and some of the other popular ones:
+There are many great request dispatcher implementations out there. Here is a comparison between ResultR and some of the other popular ones:
 
 Performance comparison between ResultR (latest), [MediatR](https://github.com/jbogard/MediatR) (12.5.0), [DispatchR](https://github.com/hasanxdev/DispatchR) (2.1.1), and [Mediator.SourceGenerator](https://github.com/martinothamar/Mediator) (2.1.7):
 
@@ -248,10 +256,11 @@ dotnet run -c Release
 - **Opinionated**: Built-in validation and lifecycle hooks without configuration
 - **Result-focused**: Every operation returns a Result type for consistent error handling
 - **Smaller**: Minimal API surface area and dependencies
+- **Honest naming**: Uses `Dispatcher` instead of `Mediator` to accurately describe the pattern
 
 ### vs Custom Implementation
 
-- **Battle-tested patterns**: Proven mediator implementation
+- **Battle-tested patterns**: Proven request dispatcher implementation
 - **DI integration**: Automatic handler registration and resolution
 - **Type safety**: Compile-time guarantees for request/response matching
 - **Extensibility**: Optional hooks without forcing inheritance
@@ -271,7 +280,7 @@ ISC License - see LICENSE file for details
 
 ## 🗺️ Roadmap
 
-- [x] Core mediator implementation
+- [x] Core dispatcher implementation
 - [x] Result types with metadata support
 - [x] DI registration extensions
 - [x] Comprehensive unit tests
