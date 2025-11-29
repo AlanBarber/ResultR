@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace ResultR;
 
@@ -20,11 +19,9 @@ public sealed class Dispatcher : IDispatcher
 {
     private readonly IServiceProvider _serviceProvider;
 
-    // Cache for constructed handler types: (requestType, responseType) -> handlerInterfaceType
-    private static readonly ConcurrentDictionary<(Type, Type), Type> _handlerTypeCache = new();
-
-    // Cache for compiled pipeline executors: handlerType -> executor delegate
-    private static readonly ConcurrentDictionary<Type, Delegate> _pipelineExecutorCache = new();
+    // Single cache: requestType -> (handlerType, compiled executor)
+    // Using requestType as key avoids tuple allocation and reduces lookups from 2 to 1
+    private static readonly ConcurrentDictionary<Type, (Type HandlerType, Delegate Executor)> _cache = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Dispatcher"/> class.
@@ -36,28 +33,41 @@ public sealed class Dispatcher : IDispatcher
     }
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Task<Result<TResponse>> Dispatch<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 
         var requestType = request.GetType();
 
-        // Get or create the handler interface type from cache
-        var handlerType = _handlerTypeCache.GetOrAdd(
-            (requestType, typeof(TResponse)),
-            static key => typeof(IRequestHandler<,>).MakeGenericType(key.Item1, key.Item2));
+        // Single cache lookup for both handler type and executor
+        var (handlerType, executor) = _cache.GetOrAdd(
+            requestType,
+            static type => CreateCacheEntry(type));
 
         var handler = _serviceProvider.GetService(handlerType)
             ?? throw new InvalidOperationException($"No handler registered for {requestType.Name}");
 
-        // Get or create the compiled pipeline executor from cache
-        var executor = _pipelineExecutorCache.GetOrAdd(
-            handlerType,
-            static type => CreatePipelineExecutor(type));
-
-        // Execute the cached delegate
+        // Execute the cached delegate - cast is safe because we control delegate creation
         return Unsafe.As<Func<object, object, CancellationToken, Task<Result<TResponse>>>>(executor)(
             handler, request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Creates a cache entry containing both the handler type and compiled executor.
+    /// Called once per request type, then cached for all subsequent dispatches.
+    /// </summary>
+    private static (Type HandlerType, Delegate Executor) CreateCacheEntry(Type requestType)
+    {
+        // Find TResponse from IRequest<TResponse> interface
+        var requestInterface = requestType.GetInterfaces()
+            .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequest<>));
+        var responseType = requestInterface.GetGenericArguments()[0];
+
+        var handlerType = typeof(IRequestHandler<,>).MakeGenericType(requestType, responseType);
+        var executor = CreatePipelineExecutor(handlerType, requestType, responseType);
+
+        return (handlerType, executor);
     }
 
     /// <summary>
@@ -65,15 +75,8 @@ public sealed class Dispatcher : IDispatcher
     /// Uses expression trees to build a strongly-typed delegate at runtime, avoiding reflection
     /// on every request. The compiled delegate is cached for subsequent calls.
     /// </summary>
-    /// <param name="handlerType">The closed generic handler interface type (e.g., IRequestHandler{MyRequest, MyResponse}).</param>
-    /// <returns>A delegate that can execute the pipeline for the given handler type.</returns>
-    private static Delegate CreatePipelineExecutor(Type handlerType)
+    private static Delegate CreatePipelineExecutor(Type handlerType, Type requestType, Type responseType)
     {
-        // Extract TRequest and TResponse from IRequestHandler<TRequest, TResponse>
-        var genericArgs = handlerType.GetGenericArguments();
-        var requestType = genericArgs[0];
-        var responseType = genericArgs[1];
-
         // Create the generic method ExecutePipelineAsync<TRequest, TResponse>
         var method = typeof(Dispatcher)
             .GetMethod(nameof(ExecutePipelineAsync), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
@@ -120,20 +123,20 @@ public sealed class Dispatcher : IDispatcher
         try
         {
             // Step 1: Validate
-            var validationResult = await handler.ValidateAsync(request);
+            var validationResult = await handler.ValidateAsync(request).ConfigureAwait(false);
             if (validationResult.IsFailure)
             {
                 return Result<TResponse>.Failure(validationResult.Error ?? "Validation failed");
             }
 
             // Step 2: BeforeHandle
-            await handler.BeforeHandleAsync(request);
+            await handler.BeforeHandleAsync(request).ConfigureAwait(false);
 
             // Step 3: Handle
-            var result = await handler.HandleAsync(request, cancellationToken);
+            var result = await handler.HandleAsync(request, cancellationToken).ConfigureAwait(false);
 
             // Step 4: AfterHandle
-            await handler.AfterHandleAsync(request, result);
+            await handler.AfterHandleAsync(request, result).ConfigureAwait(false);
 
             return result;
         }

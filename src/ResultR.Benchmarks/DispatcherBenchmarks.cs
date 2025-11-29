@@ -25,9 +25,9 @@ public class DispatcherBenchmarks
     private global::Mediator.IMediator _mediatorSGMediator = null!;
 
     // Static request instances for Mediator.SourceGenerator (avoids allocation in benchmark)
-    private static readonly MediatorSGSimpleRequest _sgSimpleRequest = new();
-    private static readonly MediatorSGValidatedRequest _sgValidatedRequest = new();
-    private static readonly MediatorSGFullPipelineRequest _sgFullPipelineRequest = new();
+    private static readonly MediatorSGSimpleRequest _sgSimpleRequest = new(42);
+    private static readonly MediatorSGValidatedRequest _sgValidatedRequest = new(42);
+    private static readonly MediatorSGFullPipelineRequest _sgFullPipelineRequest = new(42);
 
     [GlobalSetup]
     public void Setup()
@@ -38,21 +38,32 @@ public class DispatcherBenchmarks
         _resultRProvider = resultRServices.BuildServiceProvider();
         _resultRDispatcher = _resultRProvider.GetRequiredService<ResultR.IDispatcher>();
 
-        // MediatR setup
+        // MediatR setup - register behaviors for validation and full pipeline
         var mediatRServices = new ServiceCollection();
-        mediatRServices.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DispatcherBenchmarks).Assembly));
+        mediatRServices.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssembly(typeof(DispatcherBenchmarks).Assembly);
+            // Register pipeline behaviors for fair comparison
+            cfg.AddBehavior<MediatR.IPipelineBehavior<MediatRValidatedRequest, int>, MediatRValidationBehavior<MediatRValidatedRequest, int>>();
+            cfg.AddBehavior<MediatR.IPipelineBehavior<MediatRFullPipelineRequest, int>, MediatRPreProcessorBehavior<MediatRFullPipelineRequest, int>>();
+            cfg.AddBehavior<MediatR.IPipelineBehavior<MediatRFullPipelineRequest, int>, MediatRPostProcessorBehavior<MediatRFullPipelineRequest, int>>();
+        });
         _mediatRProvider = mediatRServices.BuildServiceProvider();
         _mediatRMediator = _mediatRProvider.GetRequiredService<MediatR.IMediator>();
 
-        // DispatchR setup
+        // DispatchR setup - pipeline behaviors are auto-registered from assembly scan
         var dispatchRServices = new ServiceCollection();
         dispatchRServices.AddDispatchR(typeof(DispatcherBenchmarks).Assembly);
         _dispatchRProvider = dispatchRServices.BuildServiceProvider();
         _dispatchRMediator = _dispatchRProvider.GetRequiredService<global::DispatchR.IMediator>();
 
-        // Mediator.SourceGenerator setup
+        // Mediator.SourceGenerator setup - register pipeline behaviors manually for v2.x
         var mediatorSGServices = new ServiceCollection();
         mediatorSGServices.AddMediator();
+        // Register specific pipeline behaviors (v2.x doesn't have MediatorOptions.PipelineBehaviors)
+        mediatorSGServices.AddSingleton<global::Mediator.IPipelineBehavior<MediatorSGValidatedRequest, int>, MediatorSGValidationBehavior>();
+        mediatorSGServices.AddSingleton<global::Mediator.IPipelineBehavior<MediatorSGFullPipelineRequest, int>, MediatorSGPreProcessorBehavior>();
+        mediatorSGServices.AddSingleton<global::Mediator.IPipelineBehavior<MediatorSGFullPipelineRequest, int>, MediatorSGPostProcessorBehavior>();
         _mediatorSGProvider = mediatorSGServices.BuildServiceProvider();
         _mediatorSGMediator = _mediatorSGProvider.GetRequiredService<global::Mediator.IMediator>();
     }

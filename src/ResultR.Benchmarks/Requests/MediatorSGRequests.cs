@@ -3,34 +3,78 @@ using MSG = Mediator;
 namespace ResultR.Benchmarks.Requests.MediatorSG;
 
 // Simple request/response - just handler, no pipeline
-public sealed class MediatorSGSimpleRequest : MSG.IRequest<int> { }
+public sealed record MediatorSGSimpleRequest(int Value) : MSG.IRequest<int>;
 
 public sealed class MediatorSGSimpleHandler : MSG.IRequestHandler<MediatorSGSimpleRequest, int>
 {
     public ValueTask<int> Handle(MediatorSGSimpleRequest request, CancellationToken cancellationToken)
     {
-        return ValueTask.FromResult(84); // 42 * 2
+        return ValueTask.FromResult(request.Value * 2);
     }
 }
 
-// For validated and full pipeline, we just use simple handlers since
-// Mediator.SourceGenerator pipelines require IMessage constraint which conflicts
-public sealed class MediatorSGValidatedRequest : MSG.IRequest<int> { }
+// Request with validation pipeline behavior
+public sealed record MediatorSGValidatedRequest(int Value) : MSG.IRequest<int>;
 
 public sealed class MediatorSGValidatedHandler : MSG.IRequestHandler<MediatorSGValidatedRequest, int>
 {
     public ValueTask<int> Handle(MediatorSGValidatedRequest request, CancellationToken cancellationToken)
     {
-        return ValueTask.FromResult(84);
+        return ValueTask.FromResult(request.Value * 2);
     }
 }
 
-public sealed class MediatorSGFullPipelineRequest : MSG.IRequest<int> { }
+// Validation pipeline behavior for MediatorSG
+public sealed class MediatorSGValidationBehavior : MSG.IPipelineBehavior<MediatorSGValidatedRequest, int>
+{
+    public ValueTask<int> Handle(
+        MediatorSGValidatedRequest message,
+        CancellationToken cancellationToken,
+        MSG.MessageHandlerDelegate<MediatorSGValidatedRequest, int> next)
+    {
+        // Simulate validation check
+        if (message.Value < 0)
+        {
+            throw new ArgumentException("Value must be non-negative");
+        }
+        return next(message, cancellationToken);
+    }
+}
+
+// Request with full pipeline (pre/post behaviors)
+public sealed record MediatorSGFullPipelineRequest(int Value) : MSG.IRequest<int>;
 
 public sealed class MediatorSGFullPipelineHandler : MSG.IRequestHandler<MediatorSGFullPipelineRequest, int>
 {
     public ValueTask<int> Handle(MediatorSGFullPipelineRequest request, CancellationToken cancellationToken)
     {
-        return ValueTask.FromResult(84);
+        return ValueTask.FromResult(request.Value * 2);
+    }
+}
+
+// Pre-processor pipeline behavior for MediatorSG
+public sealed class MediatorSGPreProcessorBehavior : MSG.IPipelineBehavior<MediatorSGFullPipelineRequest, int>
+{
+    public ValueTask<int> Handle(
+        MediatorSGFullPipelineRequest message,
+        CancellationToken cancellationToken,
+        MSG.MessageHandlerDelegate<MediatorSGFullPipelineRequest, int> next)
+    {
+        // Pre-process
+        return next(message, cancellationToken);
+    }
+}
+
+// Post-processor pipeline behavior for MediatorSG
+public sealed class MediatorSGPostProcessorBehavior : MSG.IPipelineBehavior<MediatorSGFullPipelineRequest, int>
+{
+    public async ValueTask<int> Handle(
+        MediatorSGFullPipelineRequest message,
+        CancellationToken cancellationToken,
+        MSG.MessageHandlerDelegate<MediatorSGFullPipelineRequest, int> next)
+    {
+        var result = await next(message, cancellationToken);
+        // Post-process
+        return result;
     }
 }

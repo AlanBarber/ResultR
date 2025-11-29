@@ -37,9 +37,9 @@ public class ResultRFullPipelineHandler : IRequestHandler<ResultRFullPipelineReq
         return new(Result.Success());
     }
 
-    public ValueTask OnPreHandleAsync(ResultRFullPipelineRequest request)
+    public ValueTask BeforeHandleAsync(ResultRFullPipelineRequest request)
     {
-        // Pre-handle hook
+        // Before-handle hook
         return default;
     }
 
@@ -48,9 +48,9 @@ public class ResultRFullPipelineHandler : IRequestHandler<ResultRFullPipelineReq
         return new(Result<int>.Success(request.Value * 2));
     }
 
-    public ValueTask OnPostHandleAsync(ResultRFullPipelineRequest request, Result<int> result)
+    public ValueTask AfterHandleAsync(ResultRFullPipelineRequest request, Result<int> result)
     {
-        // Post-handle hook
+        // After-handle hook
         return default;
     }
 }
