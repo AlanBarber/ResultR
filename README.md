@@ -7,19 +7,22 @@
 [![NuGet Downloads](https://img.shields.io/nuget/dt/ResultR?label=nuget%20downloads)](https://www.nuget.org/packages/ResultR)
 [![GitHub License](https://img.shields.io/github/license/alanbarber/ResultR)](https://github.com/AlanBarber/ResultR/blob/main/LICENSE)
 
-A lightweight, opinionated mediator library for C#. Provides a unified IRequest and IRequestHandler pattern with built-in result wrapping, optional validation, and per-request logging.
-
 ## 📖 Overview
 
-ResultR provides a minimal yet powerful request/response dispatcher with built-in result handling, validation, and request lifecycle hooks. It's designed as a modern alternative to MediatR with a smaller surface area and a clearer result pattern.
+ResultR is a lightweight request/response dispatcher for .NET applications. It routes requests to handlers and wraps all responses in a `Result<T>` type for consistent success/failure handling.
 
-### Why do you call it a Dispatcher? Isn't this just a another Mediator library?
+**What it does:**
+- Decouples your application logic by routing requests to dedicated handler classes
+- Provides a predictable pipeline: Validate → BeforeHandle → Handle → AfterHandle
+- Catches exceptions automatically and returns them as failure results
+- Eliminates the need for try/catch blocks scattered throughout your codebase
 
-Yes and no. While ResultR serves the same purpose as MediatR and similar libraries, we chose different naming to be more technically accurate. The classic GoF Mediator pattern describes an object that coordinates bidirectional communication between multiple colleague objects - think of a chat room where participants talk *through* the mediator to each other.
+**What it doesn't do:**
+- No notifications or pub/sub messaging
+- No pipeline behaviors or middleware chains
+- No stream handling
 
-What these libraries, and ResultR specifically, actually do is simpler: route a request to exactly one handler and return a response. There's no inter-handler communication. This is closer to a **command pattern** or **in-process message bus** pattern.
-
-We chose `IDispatcher` and `Dispatcher` because the name honestly describes the behavior: requests go in, get dispatched to a handler, and results come out.
+This focused scope keeps the library small, fast, and easy to understand.
 
 ## ✨ Key Features
 
@@ -219,9 +222,19 @@ public class ValidatingHandler : IRequestHandler<MyRequest, MyResponse>
 }
 ```
 
+## ❓ FAQ
+
+### Why "Dispatcher" instead of "Mediator"?
+
+The classic GoF Mediator pattern describes an object that coordinates bidirectional communication between multiple colleague objects - think of a chat room where participants talk *through* the mediator to each other.
+
+What ResultR actually does is simpler: route a request to exactly one handler and return a response. There's no inter-handler communication. This is closer to a **command pattern** or **in-process message bus**.
+
+We chose `IDispatcher` and `Dispatcher` because the name honestly describes the behavior: requests go in, get dispatched to a handler, and results come out.
+
 ## 📊 Benchmarks
 
-There are many great request dispatcher implementations out there. Here is a comparison between ResultR and some of the other popular ones:
+There are many great request dispatcher / "mediator" implementations out there. Here is a comparison between ResultR and some of the other popular ones:
 
 Performance comparison between ResultR (latest), [MediatR](https://github.com/jbogard/MediatR) (12.5.0), [DispatchR](https://github.com/hasanxdev/DispatchR) (2.1.1), and [Mediator.SourceGenerator](https://github.com/martinothamar/Mediator) (2.1.7):
 
@@ -248,23 +261,6 @@ cd src/ResultR.Benchmarks
 dotnet run -c Release
 ```
 
-## 🤔 Why ResultR?
-
-### vs MediatR
-
-- **Simpler**: No pipeline behaviors, notifications, or stream support - just requests and handlers
-- **Opinionated**: Built-in validation and lifecycle hooks without configuration
-- **Result-focused**: Every operation returns a Result type for consistent error handling
-- **Smaller**: Minimal API surface area and dependencies
-- **Honest naming**: Uses `Dispatcher` instead of `Mediator` to accurately describe the pattern
-
-### vs Custom Implementation
-
-- **Battle-tested patterns**: Proven request dispatcher implementation
-- **DI integration**: Automatic handler registration and resolution
-- **Type safety**: Compile-time guarantees for request/response matching
-- **Extensibility**: Optional hooks without forcing inheritance
-
 ## 📋 Requirements
 
 - .NET 10.0 or later
@@ -277,15 +273,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 📄 License
 
 ISC License - see LICENSE file for details
-
-## 🗺️ Roadmap
-
-- [x] Core dispatcher implementation
-- [x] Result types with metadata support
-- [x] DI registration extensions
-- [x] Comprehensive unit tests
-- [x] Performance benchmarks
-- [x] NuGet package publication
 
 ## 💬 Support
 
