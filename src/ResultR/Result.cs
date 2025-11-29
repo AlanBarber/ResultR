@@ -28,10 +28,13 @@ public class Result
     /// </summary>
     public Exception? Exception { get; }
 
+    // Cached empty dictionary to avoid allocations when Metadata is accessed without any metadata set
+    private static readonly IReadOnlyDictionary<string, object> EmptyMetadata = new Dictionary<string, object>();
+
     /// <summary>
     /// Gets the metadata dictionary. Returns an empty dictionary if no metadata has been set.
     /// </summary>
-    public IReadOnlyDictionary<string, object> Metadata => _metadata ?? new Dictionary<string, object>();
+    public IReadOnlyDictionary<string, object> Metadata => _metadata ?? EmptyMetadata;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Result"/> class.

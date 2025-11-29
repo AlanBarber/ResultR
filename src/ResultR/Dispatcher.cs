@@ -61,7 +61,10 @@ public sealed class Dispatcher : IDispatcher
     {
         // Find TResponse from IRequest<TResponse> interface
         var requestInterface = requestType.GetInterfaces()
-            .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequest<>));
+            .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequest<>))
+            ?? throw new InvalidOperationException(
+                $"Type '{requestType.Name}' does not implement IRequest<TResponse>. " +
+                "Ensure your request type implements IRequest<TResponse>.");
         var responseType = requestInterface.GetGenericArguments()[0];
 
         var handlerType = typeof(IRequestHandler<,>).MakeGenericType(requestType, responseType);
@@ -126,7 +129,10 @@ public sealed class Dispatcher : IDispatcher
             var validationResult = await handler.ValidateAsync(request).ConfigureAwait(false);
             if (validationResult.IsFailure)
             {
-                return Result<TResponse>.Failure(validationResult.Error ?? "Validation failed");
+                // Preserve exception from validation if present, otherwise just use error message
+                return validationResult.Exception is not null
+                    ? Result<TResponse>.Failure(validationResult.Error ?? "Validation failed", validationResult.Exception)
+                    : Result<TResponse>.Failure(validationResult.Error ?? "Validation failed");
             }
 
             // Step 2: BeforeHandle

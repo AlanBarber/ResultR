@@ -219,4 +219,54 @@ public class DispatcherTests
             throw new OperationCanceledException();
         }
     }
+
+    [Fact]
+    public async Task Dispatch_PassesCancellationToken_ToHandler()
+    {
+        var receivedToken = CancellationToken.None;
+        var handler = new TokenCapturingHandler(ct => receivedToken = ct);
+        var dispatcher = CreateDispatcher(s => s.AddSingleton<IRequestHandler<TestRequest, string>>(handler));
+        
+        using var cts = new CancellationTokenSource();
+        var request = new TestRequest("test");
+
+        await dispatcher.Dispatch(request, cts.Token);
+
+        Assert.Equal(cts.Token, receivedToken);
+    }
+
+    private class TokenCapturingHandler(Action<CancellationToken> capture) : IRequestHandler<TestRequest, string>
+    {
+        public ValueTask<Result<string>> HandleAsync(TestRequest request, CancellationToken cancellationToken)
+        {
+            capture(cancellationToken);
+            return new(Result<string>.Success("done"));
+        }
+    }
+
+    [Fact]
+    public async Task Dispatch_PreservesValidationException_WhenPresent()
+    {
+        var expectedException = new ArgumentException("Invalid data");
+        var handler = new ValidationWithExceptionHandler(expectedException);
+        var dispatcher = CreateDispatcher(s => s.AddSingleton<IRequestHandler<TestRequest, string>>(handler));
+
+        var result = await dispatcher.Dispatch(new TestRequest("test"));
+
+        Assert.True(result.IsFailure);
+        Assert.Same(expectedException, result.Exception);
+    }
+
+    private class ValidationWithExceptionHandler(Exception exception) : IRequestHandler<TestRequest, string>
+    {
+        public ValueTask<Result> ValidateAsync(TestRequest request)
+        {
+            return new(Result.Failure("Validation failed", exception));
+        }
+
+        public ValueTask<Result<string>> HandleAsync(TestRequest request, CancellationToken cancellationToken)
+        {
+            return new(Result<string>.Success("should not reach"));
+        }
+    }
 }

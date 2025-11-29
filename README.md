@@ -51,6 +51,8 @@ Each request flows through a simple, predictable pipeline:
 4. 🏁 **After Handle** - Invokes `AfterHandleAsync()` for logging or cleanup
 5. 🛡️ **Exception Handling** - Any exceptions are caught and returned as `Result.Failure` with the exception attached
 
+📚 **[Read the full documentation on the Wiki →](https://github.com/AlanBarber/ResultR/wiki)**
+
 ## 📥 Installation
 
 ```bash
@@ -203,21 +205,27 @@ var result = Result<User>.Success(user)
     .WithMetadata("Source", "API");
 ```
 
-### Validation Only
+### Optional Hooks
+
+Override only the hooks you need - no base class required:
 
 ```csharp
-// Handlers can override validation without other hooks
-public class ValidatingHandler : IRequestHandler<MyRequest, MyResponse>
+// Just validation + handle (no before/after hooks)
+public class ValidatingHandler : IRequestHandler<CreateOrderRequest, Order>
 {
-    public ValueTask<Result> ValidateAsync(MyRequest request)
+    public ValueTask<Result> ValidateAsync(CreateOrderRequest request)
     {
-        // Validation logic
+        if (request.Items.Count == 0)
+            return new(Result.Failure("Order must have at least one item"));
+        
         return new(Result.Success());
     }
 
-    public async ValueTask<Result<MyResponse>> HandleAsync(MyRequest request, CancellationToken cancellationToken)
+    public async ValueTask<Result<Order>> HandleAsync(CreateOrderRequest request, CancellationToken cancellationToken)
     {
-        // Handle logic
+        // This only runs if validation passes
+        var order = await _repository.CreateAsync(request, cancellationToken);
+        return Result<Order>.Success(order);
     }
 }
 ```
