@@ -46,9 +46,15 @@ public record CreateUserRequest(string Email, string Name) : IRequest<User>;
 
 The generic parameter `User` is the type your handler will return on success.
 
+For operations that don't return data, use the non-generic `IRequest`:
+
+```csharp
+public record DeleteUserRequest(int Id) : IRequest;
+```
+
 ### 3. Create a Handler
 
-A handler implements `IRequestHandler<TRequest, TResponse>`:
+A handler implements `IRequestHandler<TRequest, TResponse>` (or `IRequestHandler<TRequest>` for void operations):
 
 ```csharp
 public class CreateUserHandler : IRequestHandler<CreateUserRequest, User>

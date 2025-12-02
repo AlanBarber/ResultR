@@ -29,10 +29,10 @@ public record GetAllOrdersRequest(int CustomerId) : IRequest<IReadOnlyList<Order
 
 ### Request with No Return Value
 
-For operations that don't return data, use `Result` as the response type:
+For operations that don't return data (commands), use the non-generic `IRequest` interface:
 
 ```csharp
-public record DeleteUserRequest(int Id) : IRequest<Result>;
+public record DeleteUserRequest(int Id) : IRequest;
 ```
 
 ## Handlers
@@ -108,12 +108,12 @@ public class CreateOrderHandler : IRequestHandler<CreateOrderRequest, Order>
 
 ### Handler for Void Operations
 
-When your operation doesn't return a value:
+When your operation doesn't return a value, use `IRequest` and `IRequestHandler<TRequest>`:
 
 ```csharp
-public record DeleteUserRequest(int Id) : IRequest<Result>;
+public record DeleteUserRequest(int Id) : IRequest;
 
-public class DeleteUserHandler : IRequestHandler<DeleteUserRequest, Result>
+public class DeleteUserHandler : IRequestHandler<DeleteUserRequest>
 {
     private readonly IUserRepository _repository;
 
@@ -122,15 +122,15 @@ public class DeleteUserHandler : IRequestHandler<DeleteUserRequest, Result>
         _repository = repository;
     }
 
-    public async ValueTask<Result<Result>> HandleAsync(
+    public async ValueTask<Result> HandleAsync(
         DeleteUserRequest request, 
         CancellationToken cancellationToken)
     {
         var deleted = await _repository.DeleteAsync(request.Id, cancellationToken);
         
         return deleted
-            ? Result<Result>.Success(Result.Success())
-            : Result<Result>.Failure($"User {request.Id} not found");
+            ? Result.Success()
+            : Result.Failure($"User {request.Id} not found");
     }
 }
 ```

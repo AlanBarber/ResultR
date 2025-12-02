@@ -17,6 +17,14 @@ namespace ResultR;
 public interface IDispatcher
 {
     /// <summary>
+    /// Dispatches a request that does not return a value to its handler.
+    /// </summary>
+    /// <param name="request">The request to dispatch.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task representing the asynchronous operation, containing the result.</returns>
+    Task<Result> Dispatch(IRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Dispatches a request to its handler and returns the result.
     /// </summary>
     /// <typeparam name="TResponse">The type of response expected from the handler.</typeparam>

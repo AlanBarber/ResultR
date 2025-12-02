@@ -19,9 +19,11 @@ public sealed class Dispatcher : IDispatcher
 {
     private readonly IServiceProvider _serviceProvider;
 
-    // Single cache: requestType -> (handlerType, compiled executor)
-    // Using requestType as key avoids tuple allocation and reduces lookups from 2 to 1
+    // Cache for requests with response: requestType -> (handlerType, compiled executor)
     private static readonly ConcurrentDictionary<Type, (Type HandlerType, Delegate Executor)> _cache = new();
+
+    // Cache for void requests: requestType -> (handlerType, compiled executor)
+    private static readonly ConcurrentDictionary<Type, (Type HandlerType, Delegate Executor)> _voidCache = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Dispatcher"/> class.
@@ -30,6 +32,27 @@ public sealed class Dispatcher : IDispatcher
     public Dispatcher(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
+    }
+
+    /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Task<Result> Dispatch(IRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var requestType = request.GetType();
+
+        // Single cache lookup for both handler type and executor
+        var (handlerType, executor) = _voidCache.GetOrAdd(
+            requestType,
+            static type => CreateVoidCacheEntry(type));
+
+        var handler = _serviceProvider.GetService(handlerType)
+            ?? throw new InvalidOperationException($"No handler registered for {requestType.Name}");
+
+        // Execute the cached delegate - cast is safe because we control delegate creation
+        return Unsafe.As<Func<object, object, CancellationToken, Task<Result>>>(executor)(
+            handler, request, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -54,6 +77,18 @@ public sealed class Dispatcher : IDispatcher
     }
 
     /// <summary>
+    /// Creates a cache entry for void requests containing both the handler type and compiled executor.
+    /// Called once per request type, then cached for all subsequent dispatches.
+    /// </summary>
+    private static (Type HandlerType, Delegate Executor) CreateVoidCacheEntry(Type requestType)
+    {
+        var handlerType = typeof(IRequestHandler<>).MakeGenericType(requestType);
+        var executor = CreateVoidPipelineExecutor(handlerType, requestType);
+
+        return (handlerType, executor);
+    }
+
+    /// <summary>
     /// Creates a cache entry containing both the handler type and compiled executor.
     /// Called once per request type, then cached for all subsequent dispatches.
     /// </summary>
@@ -71,6 +106,34 @@ public sealed class Dispatcher : IDispatcher
         var executor = CreatePipelineExecutor(handlerType, requestType, responseType);
 
         return (handlerType, executor);
+    }
+
+    /// <summary>
+    /// Creates a compiled delegate that executes the pipeline for void request handlers.
+    /// Uses expression trees to build a strongly-typed delegate at runtime, avoiding reflection
+    /// on every request. The compiled delegate is cached for subsequent calls.
+    /// </summary>
+    private static Delegate CreateVoidPipelineExecutor(Type handlerType, Type requestType)
+    {
+        // Create the generic method ExecuteVoidPipelineAsync<TRequest>
+        var method = typeof(Dispatcher)
+            .GetMethod(nameof(ExecuteVoidPipelineAsync), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+            .MakeGenericMethod(requestType);
+
+        // Build expression: (object handler, object request, CancellationToken ct) => 
+        //     ExecuteVoidPipelineAsync<TRequest>((IRequestHandler<TRequest>)handler, (TRequest)request, ct)
+        var handlerParam = Expression.Parameter(typeof(object), "handler");
+        var requestParam = Expression.Parameter(typeof(object), "request");
+        var ctParam = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
+
+        var call = Expression.Call(
+            method,
+            Expression.Convert(handlerParam, handlerType),
+            Expression.Convert(requestParam, requestType),
+            ctParam);
+
+        var lambda = Expression.Lambda(call, handlerParam, requestParam, ctParam);
+        return lambda.Compile();
     }
 
     /// <summary>
@@ -154,6 +217,62 @@ public sealed class Dispatcher : IDispatcher
         catch (Exception ex)
         {
             return Result<TResponse>.Failure(ex.Message, ex);
+        }
+    }
+
+    /// <summary>
+    /// Executes the full handler pipeline for void requests: Validate → BeforeHandle → Handle → AfterHandle.
+    /// </summary>
+    /// <remarks>
+    /// <para>The pipeline executes in order:</para>
+    /// <list type="number">
+    ///   <item>ValidateAsync - if validation fails, returns early with failure result</item>
+    ///   <item>BeforeHandleAsync - runs pre-processing logic (e.g., logging)</item>
+    ///   <item>HandleAsync - executes the main business logic</item>
+    ///   <item>AfterHandleAsync - runs post-processing logic (e.g., logging, cleanup)</item>
+    /// </list>
+    /// <para>
+    /// Any exception (except OperationCanceledException) is caught and
+    /// converted to a failure result with the exception attached.
+    /// </para>
+    /// </remarks>
+    private static async Task<Result> ExecuteVoidPipelineAsync<TRequest>(
+        IRequestHandler<TRequest> handler,
+        TRequest request,
+        CancellationToken cancellationToken)
+        where TRequest : IRequest
+    {
+        try
+        {
+            // Step 1: Validate
+            var validationResult = await handler.ValidateAsync(request).ConfigureAwait(false);
+            if (validationResult.IsFailure)
+            {
+                // Preserve exception from validation if present, otherwise just use error message
+                return validationResult.Exception is not null
+                    ? Result.Failure(validationResult.Error ?? "Validation failed", validationResult.Exception)
+                    : Result.Failure(validationResult.Error ?? "Validation failed");
+            }
+
+            // Step 2: BeforeHandle
+            await handler.BeforeHandleAsync(request).ConfigureAwait(false);
+
+            // Step 3: Handle
+            var result = await handler.HandleAsync(request, cancellationToken).ConfigureAwait(false);
+
+            // Step 4: AfterHandle
+            await handler.AfterHandleAsync(request, result).ConfigureAwait(false);
+
+            return result;
+        }
+        catch (OperationCanceledException)
+        {
+            // Re-throw cancellation to allow proper async cancellation handling
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure(ex.Message, ex);
         }
     }
 }
