@@ -26,22 +26,13 @@ This focused scope keeps the library small, fast, and easy to understand.
 
 ## ✨ Key Features
 
-- 🔌 **Single Interface Pattern**: Uses only `IRequest<TResponse>` and `IRequestHandler<TRequest, TResponse>` - no distinction between commands and queries
-- 📦 **Unified Result Type**: All operations return `Result<T>` or `Result`, supporting success/failure states, exception capture, and optional metadata
+- 🔌 **Simple Interface Pattern**: Uses `IRequest`/`IRequest<TResponse>` and `IRequestHandler<TRequest>`/`IRequestHandler<TRequest, TResponse>` - no distinction between commands and queries
+- 📦 **Unified Result Type**: All operations return `Result` or `Result<T>`, supporting success/failure states, exception capture, and optional metadata
 - 🪝 **Optional Inline Hooks**: Handlers can override `ValidateAsync()`, `BeforeHandleAsync()`, and `AfterHandleAsync()` methods without requiring base classes or separate interfaces
-- 📝 **Request-Specific Logging**: Built-in support for per-request logging via `ILoggerFactory`
 - ⚡ **Minimal Configuration**: Simple DI integration with minimal setup
 - 🔒 **Strong Typing**: Full type safety throughout the pipeline
 
-## 💡 Design Philosophy
-
-ResultR prioritizes:
-- **Simplicity over flexibility**: Opinionated design choices reduce boilerplate
-- **Clean architecture**: No magic strings, reflection-heavy operations, or hidden behaviors
-- **Explicit over implicit**: Clear pipeline execution with predictable behavior
-- **Modern C# practices**: Leverages latest language features and patterns
-
-## 🔄 Pipeline Execution
+##  Pipeline Execution
 
 Each request flows through a simple, predictable pipeline:
 
@@ -52,6 +43,14 @@ Each request flows through a simple, predictable pipeline:
 5. 🛡️ **Exception Handling** - Any exceptions are caught and returned as `Result.Failure` with the exception attached
 
 📚 **[Read the full documentation on the Wiki →](https://github.com/AlanBarber/ResultR/wiki)**
+
+## 💡 Design Philosophy
+
+ResultR prioritizes:
+- **Simplicity over flexibility**: Opinionated design choices reduce boilerplate
+- **Clean architecture**: No magic strings, reflection-heavy operations, or hidden behaviors
+- **Explicit over implicit**: Clear pipeline execution with predictable behavior
+- **Modern C# practices**: Leverages latest language features and patterns
 
 ## 📥 Installation
 
@@ -75,10 +74,10 @@ public class CreateUserHandler : IRequestHandler<CreateUserRequest, User>
     private readonly IUserRepository _repository;
     private readonly ILogger<CreateUserHandler> _logger;
 
-    public CreateUserHandler(IUserRepository repository, ILoggerFactory loggerFactory)
+    public CreateUserHandler(IUserRepository repository, ILogger<CreateUserHandler> logger)
     {
         _repository = repository;
-        _logger = loggerFactory.CreateLogger<CreateUserHandler>();
+        _logger = logger;
     }
 
     // Optional: Validate the request (override virtual method)
@@ -183,15 +182,18 @@ else
 }
 ```
 
-For void operations, use the non-generic `Result`:
+For void operations, use the non-generic `Result` with `IRequest`:
 
 ```csharp
-public record DeleteUserRequest(Guid UserId) : IRequest<Result>;
+public record DeleteUserRequest(Guid UserId) : IRequest;
 
-public async ValueTask<Result<Result>> HandleAsync(DeleteUserRequest request, CancellationToken cancellationToken)
+public class DeleteUserHandler : IRequestHandler<DeleteUserRequest>
 {
-    await _repository.DeleteAsync(request.UserId);
-    return Result<Result>.Success(Result.Success());
+    public async ValueTask<Result> HandleAsync(DeleteUserRequest request, CancellationToken cancellationToken)
+    {
+        await _repository.DeleteAsync(request.UserId);
+        return Result.Success();
+    }
 }
 ```
 

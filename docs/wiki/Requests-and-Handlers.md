@@ -4,7 +4,7 @@ This page covers how to create requests and handlers in ResultR.
 
 ## Requests
 
-A request represents an action or query in your application. All requests implement `IRequest<TResponse>`.
+A request represents an action or query in your application. Requests implement `IRequest<TResponse>` when returning a value, or `IRequest` for void operations.
 
 ### Basic Request
 

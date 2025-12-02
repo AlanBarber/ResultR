@@ -14,8 +14,8 @@ Request → Dispatcher → Handler → Result<T>
 
 | Concept | Description |
 |---------|-------------|
-| **Request** | A simple class/record implementing `IRequest<TResponse>` that carries data to a handler |
-| **Handler** | A class implementing `IRequestHandler<TRequest, TResponse>` that processes requests |
+| **Request** | A simple class/record implementing `IRequest<TResponse>` (or `IRequest` for void operations) that carries data to a handler |
+| **Handler** | A class implementing `IRequestHandler<TRequest, TResponse>` (or `IRequestHandler<TRequest>` for void operations) that processes requests |
 | **Dispatcher** | Routes requests to their corresponding handlers via dependency injection |
 | **Result** | A wrapper type that represents either success (with a value) or failure (with an error) |
 
