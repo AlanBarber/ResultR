@@ -57,4 +57,53 @@ public class ResultTests
 
         Assert.Empty(result.Metadata);
     }
+
+    [Fact]
+    public void GetMetadataValueOrDefault_ReturnsValue_WhenKeyExistsAndTypeMatches()
+    {
+        var result = Result.Success()
+            .WithMetadata("StringKey", "TestValue")
+            .WithMetadata("IntKey", 42);
+
+        Assert.Equal("TestValue", result.GetMetadataValueOrDefault<string>("StringKey"));
+        Assert.Equal(42, result.GetMetadataValueOrDefault<int>("IntKey"));
+    }
+
+    [Fact]
+    public void GetMetadataValueOrDefault_ReturnsDefault_WhenKeyDoesNotExist()
+    {
+        var result = Result.Success();
+
+        Assert.Null(result.GetMetadataValueOrDefault<string>("NonExistentKey"));
+        Assert.Equal(0, result.GetMetadataValueOrDefault<int>("NonExistentKey"));
+    }
+
+    [Fact]
+    public void GetMetadataValueOrDefault_ReturnsDefault_WhenTypeMismatch()
+    {
+        var result = Result.Success()
+            .WithMetadata("IntKey", 42);
+
+        Assert.Null(result.GetMetadataValueOrDefault<string>("IntKey"));
+    }
+
+    [Fact]
+    public void GetMetadataValueOrDefault_ReturnsDefault_WhenNoMetadataSet()
+    {
+        var result = Result.Success();
+
+        Assert.Null(result.GetMetadataValueOrDefault<object>("AnyKey"));
+    }
+
+    [Fact]
+    public void GetMetadataValueOrDefault_WorksWithComplexTypes()
+    {
+        var complexObject = new List<int> { 1, 2, 3 };
+        var result = Result.Success()
+            .WithMetadata("ListKey", complexObject);
+
+        var retrieved = result.GetMetadataValueOrDefault<List<int>>("ListKey");
+
+        Assert.Same(complexObject, retrieved);
+    }
 }

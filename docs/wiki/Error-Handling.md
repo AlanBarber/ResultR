@@ -219,6 +219,22 @@ public async ValueTask<Result<Order>> HandleAsync(
 }
 ```
 
+Retrieve metadata values with type safety using `GetMetadataValueOrDefault<TValue>`:
+
+```csharp
+if (result.IsFailure)
+{
+    // Type-safe retrieval - returns default if key missing or type mismatch
+    var customerId = result.GetMetadataValueOrDefault<int>("CustomerId");
+    var itemCount = result.GetMetadataValueOrDefault<int>("ItemCount");
+    var timestamp = result.GetMetadataValueOrDefault<DateTime>("Timestamp");
+    
+    _logger.LogError(
+        "Order creation failed for customer {CustomerId} with {ItemCount} items at {Timestamp}",
+        customerId, itemCount, timestamp);
+}
+```
+
 ## Logging Errors
 
 Use `AfterHandleAsync` for consistent error logging:

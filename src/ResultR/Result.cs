@@ -76,6 +76,23 @@ public class Result
         _metadata[key] = value;
         return this;
     }
+
+    /// <summary>
+    /// Retrieves a metadata value by key, cast to the specified type.
+    /// Returns the default value for the type if the key does not exist or the value cannot be cast.
+    /// </summary>
+    /// <typeparam name="TValue">The type to cast the metadata value to.</typeparam>
+    /// <param name="key">The metadata key.</param>
+    /// <returns>The metadata value cast to <typeparamref name="TValue"/>, or <c>default</c> if not found or cast fails.</returns>
+    public TValue? GetMetadataValueOrDefault<TValue>(string key)
+    {
+        if (_metadata is null || !_metadata.TryGetValue(key, out var value))
+        {
+            return default;
+        }
+
+        return value is TValue typedValue ? typedValue : default;
+    }
 }
 
 /// <summary>

@@ -94,8 +94,16 @@ var result = Result<User>.Success(user)
     .WithMetadata("Source", "API")
     .WithMetadata("RequestId", Guid.NewGuid());
 
-// Access metadata
-var createdAt = (DateTime)result.Metadata["CreatedAt"];
+// Access metadata with type-safe helper
+var createdAt = result.GetMetadataValueOrDefault<DateTime>("CreatedAt");
+var source = result.GetMetadataValueOrDefault<string>("Source");
+
+// Returns default if key doesn't exist or type doesn't match
+var missing = result.GetMetadataValueOrDefault<int>("NonExistent"); // Returns 0
+var wrongType = result.GetMetadataValueOrDefault<string>("CreatedAt"); // Returns null
+
+// Direct dictionary access is also available
+var requestId = (Guid)result.Metadata["RequestId"];
 ```
 
 ## Patterns
