@@ -9,7 +9,7 @@
     
     <!-- Package metadata -->
     <PackageId>ResultR</PackageId>
-    <Description>A lightweight request/response dispatcher for .NET applications. It routes requests to handlers and wraps all responses in a Result<T> type for consistent success/failure handling.</Description>
+    <Description>A lightweight request/response dispatcher for .NET applications. It routes requests to handlers and wraps all responses in a Result type for consistent success/failure handling.</Description>
     <Authors>Alan Barber</Authors>
     <PackageTags>dispatcher;mediator;cqrs;result;pipeline;handler</PackageTags>
     <PackageLicenseExpression>ISC</PackageLicenseExpression>
