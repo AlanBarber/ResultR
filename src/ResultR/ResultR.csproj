@@ -9,9 +9,9 @@
     
     <!-- Package metadata -->
     <PackageId>ResultR</PackageId>
-    <Description>A lightweight, opinionated C# mediator library focused on simplicity and clean design.</Description>
+    <Description>A lightweight request/response dispatcher for .NET applications. It routes requests to handlers and wraps all responses in a Result<T> type for consistent success/failure handling.</Description>
     <Authors>Alan Barber</Authors>
-    <PackageTags>mediator;cqrs;result;pipeline;handler</PackageTags>
+    <PackageTags>dispatcher;mediator;cqrs;result;pipeline;handler</PackageTags>
     <PackageLicenseExpression>ISC</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/AlanBarber/ResultR</PackageProjectUrl>
     <RepositoryUrl>https://github.com/AlanBarber/ResultR</RepositoryUrl>
