@@ -332,7 +332,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-ISC License - see LICENSE file for details
+ISC License - see the [LICENSE](https://github.com/AlanBarber/ResultR/blob/main/LICENSE) file for details.
 
 ## 💬 Support
 
@@ -340,4 +340,4 @@ ISC License - see LICENSE file for details
 
 ---
 
-Built with ❤️ for clean, maintainable C# applications.
+Built with ❤️ for the C# / DotNet community.

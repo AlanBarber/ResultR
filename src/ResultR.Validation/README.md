@@ -1,7 +1,7 @@
 # 🎯 ResultR.Validation
 
 [![GitHub Release](https://img.shields.io/github/v/release/AlanBarber/ResultR)](https://github.com/AlanBarber/ResultR/releases)
-[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/AlanBarber/ResultR/build.yml)](https://github.com/AlanBarber/ResultR/actions/workflows/build.yml)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/AlanBarber/ResultR/release-resultr.yml)](https://github.com/AlanBarber/ResultR/actions/workflows/release-resultr.yml)
 [![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/AlanBarber/ResultR/total?label=github%20downloads)](https://github.com/AlanBarber/ResultR/releases)
 [![NuGet Version](https://img.shields.io/nuget/v/ResultR.Validation)](https://www.nuget.org/packages/ResultR.Validation)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/ResultR.Validation?label=nuget%20downloads)](https://www.nuget.org/packages/ResultR.Validation)
