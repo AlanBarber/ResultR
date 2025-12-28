@@ -58,6 +58,16 @@ ResultR prioritizes:
 dotnet add package ResultR
 ```
 
+### Optional: ResultR.Validation
+
+For inline validation with a fluent API:
+
+```bash
+dotnet add package ResultR.Validation
+```
+
+**[→ Learn more about ResultR.Validation](https://github.com/AlanBarber/ResultR/wiki/ResultR.Validation)**
+
 ## 🚀 Quick Start
 
 ### 1. Define a Request
@@ -198,6 +208,44 @@ public class DeleteUserHandler : IRequestHandler<DeleteUserRequest>
 ```
 
 ## 🔧 Advanced Features
+
+### ResultR.Validation (Optional Package)
+
+Add fluent inline validation to your handlers without separate validator classes:
+
+```csharp
+dotnet add package ResultR.Validation
+```
+
+```csharp
+using ResultR.Validation;
+
+public class CreateUserHandler : IRequestHandler<CreateUserRequest, User>
+{
+    public ValueTask<Result> ValidateAsync(CreateUserRequest request)
+    {
+        return Validator.For(request)
+            .RuleFor(x => x.Email)
+                .NotEmpty("Email is required")
+                .EmailAddress("Invalid email format")
+            .RuleFor(x => x.Name)
+                .NotEmpty("Name is required")
+                .MinLength(2, "Name must be at least 2 characters")
+            .RuleFor(x => x.Age)
+                .GreaterThan(0, "Age must be positive")
+            .ToResult();
+    }
+
+    public async ValueTask<Result<User>> HandleAsync(CreateUserRequest request, CancellationToken ct)
+    {
+        var user = new User(request.Email, request.Name, request.Age);
+        await _repository.AddAsync(user, ct);
+        return Result<User>.Success(user);
+    }
+}
+```
+
+**[→ Full ResultR.Validation documentation](https://github.com/AlanBarber/ResultR/wiki/ResultR.Validation)**
 
 ### Metadata Support
 

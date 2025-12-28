@@ -65,6 +65,8 @@ else
 
 ## Documentation
 
+### Core Documentation
+
 - [Getting Started](Getting-Started) - Installation and basic setup
 - [Requests and Handlers](Requests-and-Handlers) - Creating requests and handlers
 - [The Result Type](The-Result-Type) - Working with success and failure states
@@ -72,6 +74,10 @@ else
 - [Dependency Injection](Dependency-Injection) - Registering with DI containers
 - [Error Handling](Error-Handling) - Exception handling and failure patterns
 - [Best Practices](Best-Practices) - Recommended patterns and conventions
+
+### Optional Packages
+
+- [ResultR.Validation](ResultR.Validation) - Inline validation with fluent API
 
 ## Requirements
 

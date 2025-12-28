@@ -6,19 +6,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    
+
     <!-- NuGet Package Metadata -->
-    <PackageId>ResultR</PackageId>
+    <PackageId>ResultR.Validation</PackageId>
     <Authors>Alan Barber</Authors>
-    <Description>A lightweight request/response dispatcher for .NET applications. It routes requests to handlers and wraps all responses in a Result type for consistent success/failure handling.</Description>
-    <PackageTags>dispatcher;mediator;cqrs;result;pipeline;handler</PackageTags>
+    <Description>Lightweight inline validation framework for ResultR. Define validation rules directly in ValidateAsync() using a fluent API, with seamless integration into ResultR's pipeline hooks.</Description>
+    <PackageTags>resultr;validation;mediator;cqrs;result;fluent;inline</PackageTags>
     <PackageLicenseExpression>ISC</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/AlanBarber/ResultR</PackageProjectUrl>
     <RepositoryUrl>https://github.com/AlanBarber/ResultR</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    
+
     <!-- Build settings -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IncludeSymbols>true</IncludeSymbols>
@@ -26,12 +26,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <PackageReference Include="ResultR" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
