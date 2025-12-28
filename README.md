@@ -294,26 +294,26 @@ We chose `IDispatcher` and `Dispatcher` because the name honestly describes the 
 
 There are many great request dispatcher / "mediator" implementations out there. Here is a comparison between ResultR and some of the other popular ones:
 
-Performance comparison between ResultR (latest), [MediatR](https://github.com/jbogard/MediatR) (12.5.0), [DispatchR](https://github.com/hasanxdev/DispatchR) (2.1.1), and [Mediator.SourceGenerator](https://github.com/martinothamar/Mediator) (2.1.7):
+Performance comparison between ResultR (latest), [MediatR](https://github.com/jbogard/MediatR) (12.5.0), [DispatchR](https://github.com/hasanxdev/DispatchR) (2.1.1), and [Mediator.SourceGenerator](https://github.com/martinothamar/Mediator) (3.0.1):
 
 | Method                        | Mean      | Allocated | Ratio |
 |------------------------------ |----------:|----------:|------:|
-| MediatorSG - With Validation  |  20.26 ns |      72 B |  0.27 |
-| MediatorSG - Simple           |  23.01 ns |      72 B |  0.31 |
-| DispatchR - With Validation   |  31.37 ns |      96 B |  0.42 |
-| DispatchR - Simple            |  34.93 ns |      96 B |  0.47 |
-| DispatchR - Full Pipeline     |  44.02 ns |      96 B |  0.59 |
-| MediatorSG - Full Pipeline    |  44.35 ns |      72 B |  0.59 |
-| ResultR - Full Pipeline       |  62.92 ns |     264 B |  0.84 |
-| MediatR - Simple              |  75.03 ns |     296 B |  1.00 |
-| ResultR - With Validation     |  77.10 ns |     264 B |  1.03 |
-| ResultR - Simple              |  95.42 ns |     264 B |  1.27 |
-| MediatR - With Validation     | 120.28 ns |     608 B |  1.60 |
-| MediatR - Full Pipeline       | 158.01 ns |     824 B |  2.11 |
+| MediatorSG - Simple           |  17.15 ns |      72 B |  0.25 |
+| MediatorSG - With Validation  |  21.46 ns |      72 B |  0.31 |
+| DispatchR - With Validation   |  38.51 ns |      96 B |  0.56 |
+| DispatchR - Simple            |  39.33 ns |      96 B |  0.58 |
+| MediatorSG - Full Pipeline    |  44.27 ns |      72 B |  0.65 |
+| DispatchR - Full Pipeline     |  65.27 ns |      96 B |  0.96 |
+| MediatR - Simple              |  68.23 ns |     296 B |  1.00 |
+| ResultR - Full Pipeline       |  73.34 ns |     264 B |  1.08 |
+| ResultR - With Validation     |  75.46 ns |     264 B |  1.11 |
+| ResultR - Simple              |  80.65 ns |     264 B |  1.18 |
+| MediatR - With Validation     | 139.48 ns |     608 B |  2.05 |
+| MediatR - Full Pipeline       | 169.90 ns |     824 B |  2.49 |
 
 > **Note on benchmark methodology:** All libraries are configured with equivalent pipeline behaviors (validation, pre/post processing) for fair comparison. MediatorSG and DispatchR use source generation for optimal performance. ResultR always executes its full pipeline (Validate → BeforeHandle → Handle → AfterHandle) even when hooks use default implementations, which explains why "Simple" is slower than "Full Pipeline" - they're doing the same work.
 
-> **What does this mean?** When comparing equivalent functionality (full pipeline with behaviors), ResultR (63ns) significantly outperforms MediatR (158ns) - over 2.5x faster. The source-generated libraries (MediatorSG, DispatchR) are fastest but require compile-time code generation. In real applications where database queries take 1-10ms and HTTP calls take 50-500ms, these nanosecond differences are negligible. ResultR also allocates less memory than MediatR (264B vs 296-824B), reducing GC pressure in high-throughput scenarios.
+> **What does this mean?** When comparing equivalent functionality (full pipeline with behaviors), ResultR (73ns) significantly outperforms MediatR (170ns) - over 2.3x faster. The source-generated libraries (MediatorSG, DispatchR) are fastest but require compile-time code generation. In real applications where database queries take 1-10ms and HTTP calls take 50-500ms, these nanosecond differences are negligible. ResultR also allocates less memory than MediatR (264B vs 296-824B), reducing GC pressure in high-throughput scenarios.
 
 Run benchmarks locally:
 ```bash

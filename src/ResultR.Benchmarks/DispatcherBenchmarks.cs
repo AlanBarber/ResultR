@@ -57,10 +57,13 @@ public class DispatcherBenchmarks
         _dispatchRProvider = dispatchRServices.BuildServiceProvider();
         _dispatchRMediator = _dispatchRProvider.GetRequiredService<global::DispatchR.IMediator>();
 
-        // Mediator.SourceGenerator setup - register pipeline behaviors manually for v2.x
+        // Mediator.SourceGenerator setup - v3.x provides AddMediator extension
         var mediatorSGServices = new ServiceCollection();
-        mediatorSGServices.AddMediator();
-        // Register specific pipeline behaviors (v2.x doesn't have MediatorOptions.PipelineBehaviors)
+        mediatorSGServices.AddMediator(options =>
+        {
+            options.ServiceLifetime = ServiceLifetime.Singleton;
+        });
+        // Register pipeline behaviors manually
         mediatorSGServices.AddSingleton<global::Mediator.IPipelineBehavior<MediatorSGValidatedRequest, int>, MediatorSGValidationBehavior>();
         mediatorSGServices.AddSingleton<global::Mediator.IPipelineBehavior<MediatorSGFullPipelineRequest, int>, MediatorSGPreProcessorBehavior>();
         mediatorSGServices.AddSingleton<global::Mediator.IPipelineBehavior<MediatorSGFullPipelineRequest, int>, MediatorSGPostProcessorBehavior>();

@@ -29,8 +29,8 @@ public sealed class MediatorSGValidationBehavior : MSG.IPipelineBehavior<Mediato
 {
     public ValueTask<int> Handle(
         MediatorSGValidatedRequest message,
-        CancellationToken cancellationToken,
-        MSG.MessageHandlerDelegate<MediatorSGValidatedRequest, int> next)
+        MSG.MessageHandlerDelegate<MediatorSGValidatedRequest, int> next,
+        CancellationToken cancellationToken)
     {
         // Simulate validation check
         if (message.Value < 0)
@@ -57,8 +57,8 @@ public sealed class MediatorSGPreProcessorBehavior : MSG.IPipelineBehavior<Media
 {
     public ValueTask<int> Handle(
         MediatorSGFullPipelineRequest message,
-        CancellationToken cancellationToken,
-        MSG.MessageHandlerDelegate<MediatorSGFullPipelineRequest, int> next)
+        MSG.MessageHandlerDelegate<MediatorSGFullPipelineRequest, int> next,
+        CancellationToken cancellationToken)
     {
         // Pre-process
         return next(message, cancellationToken);
@@ -70,8 +70,8 @@ public sealed class MediatorSGPostProcessorBehavior : MSG.IPipelineBehavior<Medi
 {
     public async ValueTask<int> Handle(
         MediatorSGFullPipelineRequest message,
-        CancellationToken cancellationToken,
-        MSG.MessageHandlerDelegate<MediatorSGFullPipelineRequest, int> next)
+        MSG.MessageHandlerDelegate<MediatorSGFullPipelineRequest, int> next,
+        CancellationToken cancellationToken)
     {
         var result = await next(message, cancellationToken);
         // Post-process
