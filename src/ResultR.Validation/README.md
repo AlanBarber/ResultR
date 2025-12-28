@@ -1,14 +1,23 @@
-# ResultR.Validation
+# 🎯 ResultR.Validation
+
+[![GitHub Release](https://img.shields.io/github/v/release/AlanBarber/ResultR)](https://github.com/AlanBarber/ResultR/releases)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/AlanBarber/ResultR/build.yml)](https://github.com/AlanBarber/ResultR/actions/workflows/build.yml)
+[![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/AlanBarber/ResultR/total?label=github%20downloads)](https://github.com/AlanBarber/ResultR/releases)
+[![NuGet Version](https://img.shields.io/nuget/v/ResultR.Validation)](https://www.nuget.org/packages/ResultR.Validation)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/ResultR.Validation?label=nuget%20downloads)](https://www.nuget.org/packages/ResultR.Validation)
+[![GitHub License](https://img.shields.io/github/license/alanbarber/ResultR)](https://github.com/AlanBarber/ResultR/blob/main/LICENSE)
+
+## 📖 Overview
 
 Lightweight inline validation framework for ResultR. Define validation rules directly in your `ValidateAsync()` method using a fluent API, with seamless integration into ResultR's pipeline hooks.
 
-## Installation
+## 📥 Installation
 
 ```bash
 dotnet add package ResultR.Validation
 ```
 
-## Quick Start
+## 🚀 Quick Start
 
 ```csharp
 using ResultR;
@@ -131,16 +140,33 @@ if (result.IsFailure)
    - `Result.Success()` if all rules pass
    - `Result.Failure("Validation failed")` with errors in metadata if any rule fails
 
-## Why ResultR.Validation?
+## ❓ Why ResultR.Validation?
 
 Unlike FluentValidation which requires separate validator classes and DI registration, ResultR.Validation lets you define validation rules **inline** within your handler's `ValidateAsync()` method. This reduces ceremony and keeps validation logic close to your business logic.
-
-## License
-
-ISC License - see the [LICENSE](https://github.com/AlanBarber/ResultR/blob/main/LICENSE) file for details.
 
 ## Links
 
 - [GitHub Repository](https://github.com/AlanBarber/ResultR)
 - [ResultR Core Package](https://www.nuget.org/packages/ResultR)
 - [Documentation](https://github.com/AlanBarber/ResultR/wiki)
+
+## 📋 Requirements
+
+- .NET 10.0 or later
+- C# 14.0 or later
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+ISC License - see the [LICENSE](https://github.com/AlanBarber/ResultR/blob/main/LICENSE) file for details.
+
+## 💬 Support
+
+- **Issues**: [GitHub Issues](https://github.com/AlanBarber/ResultR/issues)
+
+---
+
+Built with ❤️ for the C# / DotNet community.
