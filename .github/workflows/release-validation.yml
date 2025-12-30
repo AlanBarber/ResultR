@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   release-validation:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - name: Checkout
@@ -37,9 +37,10 @@ jobs:
         working-directory: src
 
       - name: Pack ResultR.Validation
+        shell: pwsh
         run: |
-          VERSION=${GITHUB_REF#refs/tags/validation-v}
-          dotnet pack ResultR.Validation.csproj --configuration Release --no-build -p:PackageVersion=$VERSION -o ./nupkg
+          $version = "${{ github.ref_name }}" -replace '^validation-v', ''
+          dotnet pack ResultR.Validation.csproj --configuration Release --no-build -p:PackageVersion=$version -o ./nupkg
         working-directory: src/ResultR.Validation
 
       - name: Publish ResultR.Validation to NuGet

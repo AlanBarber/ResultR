@@ -1,10 +1,12 @@
 # 🎯 ResultR
 
-[![GitHub Release](https://img.shields.io/github/v/release/AlanBarber/ResultR)](https://github.com/AlanBarber/ResultR/releases)
-[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/AlanBarber/ResultR/build.yml)](https://github.com/AlanBarber/ResultR/actions/workflows/build.yml)
-[![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/AlanBarber/ResultR/total?label=github%20downloads)](https://github.com/AlanBarber/ResultR/releases)
-[![NuGet Version](https://img.shields.io/nuget/v/ResultR)](https://www.nuget.org/packages/ResultR)
-[![NuGet Downloads](https://img.shields.io/nuget/dt/ResultR?label=nuget%20downloads)](https://www.nuget.org/packages/ResultR)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/AlanBarber/ResultR/ci.yml)](https://github.com/AlanBarber/ResultR/actions/workflows/ci.yml)
+[![NuGet Version](https://img.shields.io/nuget/v/ResultR?label=nuget%20(ResultR))
+](https://www.nuget.org/packages/ResultR)
+[![NuGet Version](https://img.shields.io/nuget/v/ResultR.Validation?label=nuget%20(ResultR.Validation))
+](https://www.nuget.org/packages/ResultR.Validation)
+[![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/AlanBarber.ResultR-VSToolkit?label=VS%20Marketplace)
+](https://marketplace.visualstudio.com/items?itemName=AlanBarber.ResultR-VSToolkit)
 [![GitHub License](https://img.shields.io/github/license/alanbarber/ResultR)](https://github.com/AlanBarber/ResultR/blob/main/LICENSE)
 
 ## 📖 Overview
