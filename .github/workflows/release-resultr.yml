@@ -1,8 +1,9 @@
-name: Release
+name: Release - ResultR
 
 on:
   push:
-    tags: [ 'v*' ]
+    tags:
+      - 'v[0-9]*'
 
 env:
   DOTNET_VERSION: '10.0.x'

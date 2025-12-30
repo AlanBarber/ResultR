@@ -1,15 +1,13 @@
 # 🎯 ResultR.Validation
 
-[![GitHub Release](https://img.shields.io/github/v/release/AlanBarber/ResultR)](https://github.com/AlanBarber/ResultR/releases)
-[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/AlanBarber/ResultR/release-resultr.yml)](https://github.com/AlanBarber/ResultR/actions/workflows/release-resultr.yml)
-[![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/AlanBarber/ResultR/total?label=github%20downloads)](https://github.com/AlanBarber/ResultR/releases)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/AlanBarber/ResultR/ci.yml)](https://github.com/AlanBarber/ResultR/actions/workflows/ci.yml)
 [![NuGet Version](https://img.shields.io/nuget/v/ResultR.Validation)](https://www.nuget.org/packages/ResultR.Validation)
-[![NuGet Downloads](https://img.shields.io/nuget/dt/ResultR.Validation?label=nuget%20downloads)](https://www.nuget.org/packages/ResultR.Validation)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/ResultR.Validation?label=downloads)](https://www.nuget.org/packages/ResultR.Validation)
 [![GitHub License](https://img.shields.io/github/license/alanbarber/ResultR)](https://github.com/AlanBarber/ResultR/blob/main/LICENSE)
 
 ## 📖 Overview
 
-Lightweight inline validation framework for ResultR. Define validation rules directly in your `ValidateAsync()` method using a fluent API, with seamless integration into ResultR's pipeline hooks.
+Lightweight inline validation framework for [ResultR](https://www.nuget.org/packages/ResultR). Define validation rules directly in your `ValidateAsync()` method using a fluent API, with seamless integration into ResultR's pipeline hooks.
 
 ## 📥 Installation
 
@@ -147,8 +145,10 @@ Unlike FluentValidation which requires separate validator classes and DI registr
 ## Links
 
 - [GitHub Repository](https://github.com/AlanBarber/ResultR)
+- [Documentation](https://github.com/AlanBarber/ResultR/wiki/ResultR.Validation)
+- [ResultR VS Toolkit](https://marketplace.visualstudio.com/items?itemName=AlanBarber.ResultR-VSToolkit)
 - [ResultR Core Package](https://www.nuget.org/packages/ResultR)
-- [Documentation](https://github.com/AlanBarber/ResultR/wiki)
+
 
 ## 📋 Requirements
 
@@ -166,6 +166,7 @@ ISC License - see the [LICENSE](https://github.com/AlanBarber/ResultR/blob/main/
 ## 💬 Support
 
 - **Issues**: [GitHub Issues](https://github.com/AlanBarber/ResultR/issues)
+- **Documentation**: [GitHub Wiki](https://github.com/AlanBarber/ResultR/wiki/ResultR.Validation)
 
 ---
 

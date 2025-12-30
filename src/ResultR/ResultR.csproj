@@ -12,7 +12,6 @@
     <Authors>Alan Barber</Authors>
     <Description>A lightweight request/response dispatcher for .NET applications. It routes requests to handlers and wraps all responses in a Result type for consistent success/failure handling.</Description>
     <PackageTags>dispatcher;mediator;cqrs;result;pipeline;handler</PackageTags>
-    <PackageLicenseExpression>ISC</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/AlanBarber/ResultR</PackageProjectUrl>
     <RepositoryUrl>https://github.com/AlanBarber/ResultR</RepositoryUrl>
@@ -23,15 +22,28 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Title>ResultR</Title>
+    <PackageLicenseExpression>ISC</PackageLicenseExpression>
+    <PackageIcon>Icon.png</PackageIcon>
+    <Copyright>Copyright © Alan Barber</Copyright>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\Icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

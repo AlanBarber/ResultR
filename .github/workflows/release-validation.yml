@@ -1,4 +1,4 @@
-name: Release ResultR.Validation
+name: Release - ResultR.Validation
 
 on:
   push:

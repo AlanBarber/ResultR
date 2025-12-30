@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <Extern href="stdidcmd.h"/>
+  <Extern href="vsshlids.h"/>
+  <Include href="KnownImageIds.vsct"/>
+  <Include href="VSGlobals.vsct"/>
+
+  <Commands package="ResultRVSToolkit">
+    <!--This section defines the elements the user can interact with, like a menu command or a button or combo box in a toolbar. -->
+    <Groups>
+      <Group guid="ResultRVSToolkit" id="GoToHandlerGroup" priority="0x0001">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN"/>
+      </Group>
+      
+      <!-- Group for Add submenu in Project context menu -->
+      <Group guid="ResultRVSToolkit" id="AddRequestHandlerGroup" priority="0x0075">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CSCD_PROJECT_ADD"/>
+      </Group>
+      
+      <!-- Group for Add submenu in Folder context menu -->
+      <Group guid="ResultRVSToolkit" id="AddRequestHandlerFolderGroup" priority="0x0075">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CSCD_CV_ITEMADD"/>
+      </Group>
+    </Groups>
+
+    <Buttons>
+      <Button guid="ResultRVSToolkit" id="GoToHandlerCommand" priority="0x0100" type="Button">
+        <Parent guid="ResultRVSToolkit" id="GoToHandlerGroup"/>
+        <Icon guid="ImageCatalogGuid" id="GoToDefinition" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>Go to Handler...</ButtonText>
+          <LocCanonicalName>.Edit.GoToHandler</LocCanonicalName>
+        </Strings>
+      </Button>
+      
+      <!-- Add Request/Handler command for project context -->
+      <Button guid="ResultRVSToolkit" id="AddRequestHandlerCommand" priority="0x0100" type="Button">
+        <Parent guid="ResultRVSToolkit" id="AddRequestHandlerGroup"/>
+        <Icon guid="ImageCatalogGuid" id="AddClass" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>ResultR Request / Handler...</ButtonText>
+          <LocCanonicalName>.Project.AddResultRRequestHandler</LocCanonicalName>
+        </Strings>
+      </Button>
+      
+      <!-- Add Request/Handler command for folder context -->
+      <Button guid="ResultRVSToolkit" id="AddRequestHandlerFolderCommand" priority="0x0100" type="Button">
+        <Parent guid="ResultRVSToolkit" id="AddRequestHandlerFolderGroup"/>
+        <Icon guid="ImageCatalogGuid" id="AddClass" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>ResultR Request / Handler...</ButtonText>
+          <LocCanonicalName>.Folder.AddResultRRequestHandler</LocCanonicalName>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+
+  <KeyBindings>
+    <KeyBinding guid="ResultRVSToolkit" id="GoToHandlerCommand" mod1="Control" key1="R" mod2="Control" key2="H" editor="guidVSStd97"/>
+  </KeyBindings>
+
+  <Symbols>
+    <GuidSymbol name="ResultRVSToolkit" value="{34fed52c-3d19-4b03-9515-023c3dfe0eb7}">
+      <IDSymbol name="GoToHandlerCommand" value="0x0101" />
+      <IDSymbol name="GoToHandlerGroup" value="0x1000" />
+      <IDSymbol name="AddRequestHandlerCommand" value="0x0102" />
+      <IDSymbol name="AddRequestHandlerGroup" value="0x1001" />
+      <IDSymbol name="AddRequestHandlerFolderCommand" value="0x0103" />
+      <IDSymbol name="AddRequestHandlerFolderGroup" value="0x1002" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>

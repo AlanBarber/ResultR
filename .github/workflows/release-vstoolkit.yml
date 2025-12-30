@@ -1,0 +1,111 @@
+name: Release - ResultR.VSToolkit
+
+on:
+  push:
+    tags:
+      - 'vstoolkit-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release-vstoolkit:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Restore dependencies
+        run: nuget restore ResultR.VSToolkit.csproj
+        working-directory: src/ResultR.VSToolkit
+
+      - name: Build VSIX
+        run: msbuild ResultR.VSToolkit.csproj /p:Configuration=Release /p:DeployExtension=false
+        working-directory: src/ResultR.VSToolkit
+
+      - name: Get version from tag
+        id: version
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}" -replace 'vstoolkit-v', ''
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Rename VSIX with version
+        shell: pwsh
+        run: |
+          $vsixPath = Get-ChildItem -Path "src/ResultR.VSToolkit/bin/Release" -Filter "*.vsix" -Recurse | Select-Object -First 1
+          if ($vsixPath) {
+            $newName = "ResultR.VSToolkit.${{ steps.version.outputs.VERSION }}.vsix"
+            $newPath = Join-Path $vsixPath.DirectoryName $newName
+            Move-Item -Path $vsixPath.FullName -Destination $newPath
+            echo "VSIX_PATH=$newPath" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Error "No VSIX file found"
+            exit 1
+          }
+        id: rename
+
+      - name: Publish to Visual Studio Marketplace
+        shell: pwsh
+        run: |
+          # Download VsixPublisher
+          $vsixPublisherPath = "${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise\VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe"
+          
+          # If not found in Enterprise, try other editions
+          if (-not (Test-Path $vsixPublisherPath)) {
+            $vsixPublisherPath = "${env:ProgramFiles}\Microsoft Visual Studio\2022\Professional\VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe"
+          }
+          if (-not (Test-Path $vsixPublisherPath)) {
+            $vsixPublisherPath = "${env:ProgramFiles}\Microsoft Visual Studio\2022\Community\VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe"
+          }
+          
+          # Use nuget to get VsixPublisher if not found
+          if (-not (Test-Path $vsixPublisherPath)) {
+            nuget install Microsoft.VSSDK.BuildTools -Version 17.11.439 -OutputDirectory .tools
+            $vsixPublisherPath = Get-ChildItem -Path ".tools" -Filter "VsixPublisher.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
+          }
+          
+          if (-not $vsixPublisherPath -or -not (Test-Path $vsixPublisherPath)) {
+            Write-Error "VsixPublisher.exe not found"
+            exit 1
+          }
+          
+          # Publish to marketplace
+          & $vsixPublisherPath publish `
+            -payload "${{ steps.rename.outputs.VSIX_PATH }}" `
+            -publishManifest "src/ResultR.VSToolkit/Resources/publishManifest.json" `
+            -personalAccessToken "${{ secrets.VS_MARKETPLACE_TOKEN }}"
+        env:
+          VS_MARKETPLACE_TOKEN: ${{ secrets.VS_MARKETPLACE_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ steps.rename.outputs.VSIX_PATH }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+          name: ResultR.VSToolkit v${{ steps.version.outputs.VERSION }}
+          body: |
+            ## ResultR Visual Studio Extension v${{ steps.version.outputs.VERSION }}
+            
+            Navigate from `IRequest`/`IRequest<T>` classes to their corresponding `IRequestHandler` implementations with a single keystroke.
+            
+            ### Installation
+            - **Visual Studio Marketplace**: Search for "AlanBarber.ResultR-VSToolkit" in Extensions
+            - **Manual**: Download the `.vsix` file below and double-click to install
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

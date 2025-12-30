@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+    <Metadata>
+        <Identity Id="ResultR.VSToolkit.858ccf1c-9417-403d-a2ad-bd848e824963" Version="1.0" Language="en-US" Publisher="Alan Barber" />
+        <DisplayName>ResultR VS Toolkit</DisplayName>
+        <Description xml:space="preserve">ResultR VS Toolkit lets you instantly navigate from IRequest to IRequestHandler with a keystroke or right-click. Scaffold new request/handler pairs with correct namespaces from Solution Explorer.</Description>
+        <MoreInfo>https://github.com/AlanBarber/ResultR</MoreInfo>
+        <License>Resources\LICENSE</License>
+        <GettingStartedGuide>https://github.com/AlanBarber/ResultR/wiki</GettingStartedGuide>
+        <ReleaseNotes>https://github.com/AlanBarber/ResultR/releases</ReleaseNotes>
+        <Icon>Resources\Icon.png</Icon>
+        <PreviewImage>Resources\Icon.png</PreviewImage>
+        <Tags>resultr, cqrs, mediator, request-handler, result-pattern</Tags>
+    </Metadata>
+    <Installation>
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,19.0)">
+            <ProductArchitecture>amd64</ProductArchitecture>
+        </InstallationTarget>
+        <InstallationTarget Version="[17.0,19.0)" Id="Microsoft.VisualStudio.Community">
+            <ProductArchitecture>arm64</ProductArchitecture>
+        </InstallationTarget>
+    </Installation>
+    <Prerequisites>
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,19.0)" DisplayName="Visual Studio core editor" />
+    </Prerequisites>
+    <Assets>
+        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    </Assets>
+</PackageManifest>

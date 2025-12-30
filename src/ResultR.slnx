@@ -1,7 +1,8 @@
 <Solution>
-  <Project Path="ResultR/ResultR.csproj" />
-  <Project Path="ResultR.Tests/ResultR.Tests.csproj" />
   <Project Path="ResultR.Benchmarks/ResultR.Benchmarks.csproj" />
-  <Project Path="ResultR.Validation/ResultR.Validation.csproj" />
+  <Project Path="ResultR.Tests/ResultR.Tests.csproj" />
   <Project Path="ResultR.Validation.Tests/ResultR.Validation.Tests.csproj" />
+  <Project Path="ResultR.Validation/ResultR.Validation.csproj" />
+  <Project Path="ResultR.VSToolkit/ResultR.VSToolkit.csproj" Id="08b971e5-128a-4565-ba69-21905664b7b0" />
+  <Project Path="ResultR/ResultR.csproj" />
 </Solution>
