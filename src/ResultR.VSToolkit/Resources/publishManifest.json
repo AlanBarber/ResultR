@@ -2,7 +2,8 @@
   "$schema": "http://json.schemastore.org/vsix-publish",
   "categories": [
     "coding",
-    "productivity"
+    "modeling",
+    "other"
   ],
   "identity": {
     "internalName": "ResultR-VSToolkit"
@@ -12,5 +13,13 @@
   "publisher": "AlanBarber",
   "private": false,
   "qna": true,
-  "repo": "https://github.com/AlanBarber/ResultR"
+  "repo": "https://github.com/AlanBarber/ResultR",
+  "tags": [
+    "resultr",
+    "cqrs",
+    "mediator",
+    "request-handler",
+    "result-pattern",
+    "navigation"
+  ]
 }

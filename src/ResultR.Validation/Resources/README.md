@@ -1,4 +1,4 @@
-# 🎯 ResultR.Validation
+# ResultR.Validation
 
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/AlanBarber/ResultR/ci.yml)](https://github.com/AlanBarber/ResultR/actions/workflows/ci.yml)
 [![NuGet Version](https://img.shields.io/nuget/v/ResultR.Validation)](https://www.nuget.org/packages/ResultR.Validation)
@@ -8,6 +8,16 @@
 ## 📖 Overview
 
 Lightweight inline validation framework for [ResultR](https://www.nuget.org/packages/ResultR). Define validation rules directly in your `ValidateAsync()` method using a fluent API, with seamless integration into ResultR's pipeline hooks.
+
+**What it does:**
+- Validates requests using a fluent API
+- Integrates seamlessly with ResultR's pipeline hooks
+- Returns `Result.Success()` or `Result.Failure()` with aggregated errors
+
+## 📋 Requirements
+
+- .NET 10.0 or later
+- C# 14.0 or later
 
 ## 📥 Installation
 
@@ -142,18 +152,17 @@ if (result.IsFailure)
 
 Unlike FluentValidation which requires separate validator classes and DI registration, ResultR.Validation lets you define validation rules **inline** within your handler's `ValidateAsync()` method. This reduces ceremony and keeps validation logic close to your business logic.
 
-## Links
+## 💬 Support
+
+- **Issues**: [GitHub Issues](https://github.com/AlanBarber/ResultR/issues)
+- **Documentation**: [GitHub Wiki](https://github.com/AlanBarber/ResultR/wiki/ResultR.Validation)
+
+## 🔗 Links
 
 - [GitHub Repository](https://github.com/AlanBarber/ResultR)
-- [Documentation](https://github.com/AlanBarber/ResultR/wiki/ResultR.Validation)
-- [ResultR VS Toolkit](https://marketplace.visualstudio.com/items?itemName=AlanBarber.ResultR-VSToolkit)
-- [ResultR Core Package](https://www.nuget.org/packages/ResultR)
-
-
-## 📋 Requirements
-
-- .NET 10.0 or later
-- C# 14.0 or later
+- [ResultR on NuGet](https://www.nuget.org/packages/ResultR)
+- [ResultR.Validation on NuGet](https://www.nuget.org/packages/ResultR.Validation)
+- [ResultR.VSToolkit on VS Marketplace](https://marketplace.visualstudio.com/items?itemName=AlanBarber.ResultR-VSToolkit)
 
 ## 🤝 Contributing
 
@@ -162,11 +171,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 📄 License
 
 ISC License - see the [LICENSE](https://github.com/AlanBarber/ResultR/blob/main/LICENSE) file for details.
-
-## 💬 Support
-
-- **Issues**: [GitHub Issues](https://github.com/AlanBarber/ResultR/issues)
-- **Documentation**: [GitHub Wiki](https://github.com/AlanBarber/ResultR/wiki/ResultR.Validation)
 
 ---
 

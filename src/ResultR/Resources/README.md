@@ -1,4 +1,4 @@
-# 🎯 ResultR
+# ResultR
 
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/AlanBarber/ResultR/ci.yml)](https://github.com/AlanBarber/ResultR/actions/workflows/ci.yml)
 [![NuGet Version](https://img.shields.io/nuget/v/ResultR)](https://www.nuget.org/packages/ResultR)
@@ -19,36 +19,14 @@ ResultR is a lightweight request/response dispatcher for .NET applications. It r
 - No notifications or pub/sub messaging
 - No pipeline behaviors or middleware chains
 - No stream handling
+- No distributed messaging
 
 This focused scope keeps the library small, fast, and easy to understand.
 
-## ✨ Key Features
+## 📋 Requirements
 
-- 🔌 **Simple Interface Pattern**: Uses `IRequest`/`IRequest<TResponse>` and `IRequestHandler<TRequest>`/`IRequestHandler<TRequest, TResponse>` - no distinction between commands and queries
-- 📦 **Unified Result Type**: All operations return `Result` or `Result<T>`, supporting success/failure states, exception capture, and optional metadata
-- 🪝 **Optional Inline Hooks**: Handlers can override `ValidateAsync()`, `BeforeHandleAsync()`, and `AfterHandleAsync()` methods without requiring base classes or separate interfaces
-- ⚡ **Minimal Configuration**: Simple DI integration with minimal setup
-- 🔒 **Strong Typing**: Full type safety throughout the pipeline
-
-##  Pipeline Execution
-
-Each request flows through a simple, predictable pipeline:
-
-1. ✅ **Validation** - Calls `ValidateAsync()` if overridden, short-circuits on failure
-2. 🚀 **Before Handle** - Invokes `BeforeHandleAsync()` for optional logging or setup
-3. ⚙️ **Handle** - Executes the core `HandleAsync()` logic
-4. 🏁 **After Handle** - Invokes `AfterHandleAsync()` for logging or cleanup
-5. 🛡️ **Exception Handling** - Any exceptions are caught and returned as `Result.Failure` with the exception attached
-
-📚 **[Read the full documentation on the Wiki →](https://github.com/AlanBarber/ResultR/wiki)**
-
-## 💡 Design Philosophy
-
-ResultR prioritizes:
-- **Simplicity over flexibility**: Opinionated design choices reduce boilerplate
-- **Clean architecture**: No magic strings, reflection-heavy operations, or hidden behaviors
-- **Explicit over implicit**: Clear pipeline execution with predictable behavior
-- **Modern C# practices**: Leverages latest language features and patterns
+- .NET 10.0 or later
+- C# 14.0 or later
 
 ## 📥 Installation
 
@@ -56,22 +34,12 @@ ResultR prioritizes:
 dotnet add package ResultR
 ```
 
-### Optional: ResultR.Validation
-
-For inline validation with a fluent API:
-
-```bash
-dotnet add package ResultR.Validation
-```
-
-**[→ Learn more about ResultR.Validation](https://github.com/AlanBarber/ResultR/wiki/ResultR.Validation)**
-
 ## 🚀 Quick Start
 
 ### 1. Define a Request
 
 ```csharp
-public record CreateUserRequest(string Email, string Name) : IRequest<User>;
+public record CreateUserRequest(string Email, string Name, int Age) : IRequest<User>;
 ```
 
 ### 2. Create a Handler
@@ -111,7 +79,7 @@ public class CreateUserHandler : IRequestHandler<CreateUserRequest, User>
     public async ValueTask<Result<User>> HandleAsync(CreateUserRequest request, CancellationToken cancellationToken)
     {
         // Exceptions are automatically caught and converted to Result.Failure
-        var user = new User(request.Email, request.Name);
+        var user = new User(request.Email, request.Name, request.Age);
         await _repository.AddAsync(user, cancellationToken);
         return Result<User>.Success(user);
     }
@@ -205,22 +173,21 @@ public class DeleteUserHandler : IRequestHandler<DeleteUserRequest>
 }
 ```
 
-## ❓ Why ResultR.Validation?
+## ❓ Why ResultR?
 
-Unlike FluentValidation which requires separate validator classes and DI registration, ResultR.Validation lets you define validation rules **inline** within your handler's `ValidateAsync()` method. This reduces ceremony and keeps validation logic close to your business logic.
+ResultR prioritizes simplicity and explicitness over flexibility, giving you a focused request/handler pattern without the complexity of pipelines, behaviors, or middleware chains that you may never need. Every operation returns a unified Result or Result<T> type, making error handling consistent and predictable across your entire codebase. The optional inline hooks (ValidateAsync, BeforeHandleAsync, AfterHandleAsync) let you add cross-cutting concerns directly in your handlers without separate classes or DI registrations, keeping related logic together and reducing ceremony.
 
-## Links
+## 💬 Support
+
+- **Issues**: [GitHub Issues](https://github.com/AlanBarber/ResultR/issues)
+- **Documentation**: [GitHub Wiki](https://github.com/AlanBarber/ResultR/wiki)
+
+## 🔗 Links
 
 - [GitHub Repository](https://github.com/AlanBarber/ResultR)
-- [Documentation](https://github.com/AlanBarber/ResultR/wiki)
-- [ResultR VS Toolkit](https://marketplace.visualstudio.com/items?itemName=AlanBarber.ResultR-VSToolkit)
-- [ResultR.Validation](https://www.nuget.org/packages/ResultR.Validation)
-
-
-## 📋 Requirements
-
-- .NET 10.0 or later
-- C# 14.0 or later
+- [ResultR on NuGet](https://www.nuget.org/packages/ResultR)
+- [ResultR.Validation on NuGet](https://www.nuget.org/packages/ResultR.Validation)
+- [ResultR.VSToolkit on VS Marketplace](https://marketplace.visualstudio.com/items?itemName=AlanBarber.ResultR-VSToolkit)
 
 ## 🤝 Contributing
 
@@ -229,11 +196,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 📄 License
 
 ISC License - see the [LICENSE](https://github.com/AlanBarber/ResultR/blob/main/LICENSE) file for details.
-
-## 💬 Support
-
-- **Issues**: [GitHub Issues](https://github.com/AlanBarber/ResultR/issues)
-- **Documentation**: [GitHub Wiki](https://github.com/AlanBarber/ResultR/wiki)
 
 ---
 

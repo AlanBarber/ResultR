@@ -78,6 +78,7 @@ else
 ### Optional Packages
 
 - [ResultR.Validation](ResultR.Validation) - Inline validation with fluent API
+- [ResultR.VSToolkit](ResultR.VSToolkit) - Visual Studio extension for navigation and scaffolding
 
 ## Requirements
 
