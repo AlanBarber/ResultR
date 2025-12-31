@@ -2,7 +2,6 @@ using Community.VisualStudio.Toolkit;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Community.VisualStudio.Toolkit;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
