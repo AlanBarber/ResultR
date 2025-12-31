@@ -22,14 +22,40 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Restore dependencies
-      run: dotnet restore ResultR.slnx
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v2
+
+    - name: Restore .NET projects
+      run: |
+        dotnet restore ResultR/ResultR.csproj
+        dotnet restore ResultR.Validation/ResultR.Validation.csproj
+        dotnet restore ResultR.Tests/ResultR.Tests.csproj
+        dotnet restore ResultR.Validation.Tests/ResultR.Validation.Tests.csproj
+        dotnet restore ResultR.Benchmarks/ResultR.Benchmarks.csproj
       working-directory: src
 
-    - name: Build
-      run: dotnet build ResultR.slnx --configuration Release --no-restore
+    - name: Restore VSToolkit (NuGet)
+      run: nuget restore ResultR.VSToolkit/ResultR.VSToolkit.csproj
+      working-directory: src
+
+    - name: Build .NET projects
+      run: |
+        dotnet build ResultR/ResultR.csproj --configuration Release --no-restore
+        dotnet build ResultR.Validation/ResultR.Validation.csproj --configuration Release --no-restore
+        dotnet build ResultR.Tests/ResultR.Tests.csproj --configuration Release --no-restore
+        dotnet build ResultR.Validation.Tests/ResultR.Validation.Tests.csproj --configuration Release --no-restore
+        dotnet build ResultR.Benchmarks/ResultR.Benchmarks.csproj --configuration Release --no-restore
+      working-directory: src
+
+    - name: Build VSToolkit (MSBuild)
+      run: msbuild ResultR.VSToolkit/ResultR.VSToolkit.csproj /p:Configuration=Release /p:DeployExtension=false
       working-directory: src
 
     - name: Test
-      run: dotnet test ResultR.slnx --configuration Release --no-build --verbosity normal
+      run: |
+        dotnet test ResultR.Tests/ResultR.Tests.csproj --configuration Release --no-build --verbosity normal
+        dotnet test ResultR.Validation.Tests/ResultR.Validation.Tests.csproj --configuration Release --no-build --verbosity normal
       working-directory: src

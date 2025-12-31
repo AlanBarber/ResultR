@@ -25,15 +25,19 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore ResultR.slnx
+        run: |
+          dotnet restore ResultR.Validation/ResultR.Validation.csproj
+          dotnet restore ResultR.Validation.Tests/ResultR.Validation.Tests.csproj
         working-directory: src
 
       - name: Build
-        run: dotnet build ResultR.slnx --configuration Release --no-restore
+        run: |
+          dotnet build ResultR.Validation/ResultR.Validation.csproj --configuration Release --no-restore
+          dotnet build ResultR.Validation.Tests/ResultR.Validation.Tests.csproj --configuration Release --no-restore
         working-directory: src
 
       - name: Test
-        run: dotnet test ResultR.slnx --configuration Release --no-build --verbosity normal
+        run: dotnet test ResultR.Validation.Tests/ResultR.Validation.Tests.csproj --configuration Release --no-build --verbosity normal
         working-directory: src
 
       - name: Pack ResultR.Validation
