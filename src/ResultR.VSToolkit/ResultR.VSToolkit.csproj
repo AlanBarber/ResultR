@@ -6,6 +6,8 @@
     <Version>$(Version)</Version>
     <FileVersion>$(Version)</FileVersion>
     <AssemblyVersion>$(Version)</AssemblyVersion>
+    <!-- Suppress assembly version conflict warnings common in VSIX projects -->
+    <NoWarn>MSB3277</NoWarn>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>

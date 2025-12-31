@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="ResultR.VSToolkit.858ccf1c-9417-403d-a2ad-bd848e824963" Version="|Version|" Language="en-US" Publisher="Alan Barber" />
+        <Identity Id="ResultR.VSToolkit.858ccf1c-9417-403d-a2ad-bd848e824963" Version="|ResultR.VSToolkit;GetBuildVersion|" Language="en-US" Publisher="Alan Barber" />
         <DisplayName>ResultR VS Toolkit</DisplayName>
         <Description xml:space="preserve">ResultR VS Toolkit lets you instantly navigate from IRequest to IRequestHandler with a keystroke or right-click. Scaffold new request/handler pairs with correct namespaces from Solution Explorer.</Description>
         <MoreInfo>https://github.com/AlanBarber/ResultR</MoreInfo>
