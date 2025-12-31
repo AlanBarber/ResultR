@@ -51,7 +51,7 @@ jobs:
       working-directory: src
 
     - name: Build VSToolkit (MSBuild)
-      run: msbuild ResultR.VSToolkit/ResultR.VSToolkit.csproj /p:Configuration=Release /p:DeployExtension=false
+      run: msbuild ResultR.VSToolkit/ResultR.VSToolkit.csproj /p:Configuration=Release /p:DeployExtension=false /p:Version=0.0.0
       working-directory: src
 
     - name: Test
