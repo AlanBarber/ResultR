@@ -58,7 +58,7 @@ export async function findRequestTypeAtCursor(
     // Check if cursor is on a variable that is of a request type
     // Look for patterns like "var myObj = new SomeRequest()" where cursor is on myObj
     const line = document.lineAt(position.line).text;
-    const variableTypeMatch = findVariableType(line, word, text);
+    const variableTypeMatch = findVariableType(line, word);
     if (variableTypeMatch) {
         const typeInfoFromVar = await findRequestTypeInWorkspace(variableTypeMatch);
         if (typeInfoFromVar) {
@@ -153,7 +153,7 @@ function implementsInterface(baseList: string, interfaceNames: string[]): boolea
  * - MyRequest myObj = new MyRequest();
  * - var myObj = new MyRequest { ... };
  */
-function findVariableType(line: string, variableName: string, fullText: string): string | null {
+function findVariableType(line: string, variableName: string): string | null {
     // Pattern: var variableName = new TypeName(...)
     const varNewPattern = new RegExp(`var\\s+${escapeRegExp(variableName)}\\s*=\\s*new\\s+(\\w+)`);
     let match = line.match(varNewPattern);
