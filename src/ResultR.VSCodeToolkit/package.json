@@ -1,0 +1,133 @@
+{
+  "name": "ResultR-VSCodeToolkit",
+  "displayName": "ResultR VS Code Toolkit",
+  "description": "ResultR VS Code Toolkit lets you instantly navigate from IRequest to IRequestHandler with a keystroke or right-click. Scaffold new request/handler pairs with correct namespaces from the Explorer.",
+  "version": "1.0.0",
+  "publisher": "AlanBarber",
+  "author": {
+    "name": "Alan Barber"
+  },
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AlanBarber/ResultR"
+  },
+  "homepage": "https://github.com/AlanBarber/ResultR",
+  "icon": "Resources/Icon.png",
+  "readme": "Resources/README.md",
+  "bugs": {
+    "url": "https://github.com/AlanBarber/ResultR/issues"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "resultr",
+    "cqrs",
+    "mediator",
+    "request-handler",
+    "result-pattern",
+    "csharp",
+    "dotnet"
+  ],
+  "activationEvents": [
+    "onLanguage:csharp",
+    "workspaceContains:**/*.cs"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "resultr.goToHandler",
+        "title": "Go to Handler...",
+        "category": "ResultR"
+      },
+      {
+        "command": "resultr.newRequestHandler",
+        "title": "New ResultR Request / Handler...",
+        "category": "ResultR"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "resultr.goToHandler",
+          "when": "editorLangId == csharp",
+          "group": "navigation@1"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "resultr.newRequestHandler",
+          "when": "explorerResourceIsFolder || resourceExtname == .cs",
+          "group": "navigation@1"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "resultr.goToHandler",
+        "key": "ctrl+r ctrl+h",
+        "mac": "cmd+r cmd+h",
+        "when": "editorTextFocus && editorLangId == csharp"
+      }
+    ],
+    "configuration": {
+      "title": "ResultR",
+      "properties": {
+        "resultr.goToHandler.keyboardShortcut": {
+          "type": "string",
+          "default": "ctrl+r ctrl+h",
+          "description": "The keyboard shortcut for the 'Go to Handler' command. Use VS Code keybinding format (e.g., 'ctrl+r ctrl+h' for a chord). Changes require extension reload."
+        },
+        "resultr.codeGeneration.useFileScopedNamespaces": {
+          "type": "string",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "always",
+            "never"
+          ],
+          "enumDescriptions": [
+            "Automatically detect from existing files in the project",
+            "Always use file-scoped namespaces (C# 10+)",
+            "Always use block-scoped namespaces (traditional)"
+          ],
+          "description": "Whether to use file-scoped namespaces in generated files."
+        },
+        "resultr.search.excludePatterns": {
+          "type": "array",
+          "default": [
+            "**/bin/**",
+            "**/obj/**",
+            "**/node_modules/**"
+          ],
+          "description": "Glob patterns to exclude when searching for handlers and requests."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "@vscode/vsce": "^2.22.0",
+    "eslint": "^8.55.0",
+    "typescript": "^5.3.0"
+  }
+}

@@ -62,7 +62,7 @@ namespace {1}
 
             try
             {
-                var fileName = $"{requestName}Request.cs";
+                var fileName = $"{requestName}.cs";
                 var filePath = Path.Combine(folderPath, fileName);
 
                 // Check if file already exists

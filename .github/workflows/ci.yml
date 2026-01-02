@@ -54,6 +54,23 @@ jobs:
       run: msbuild ResultR.VSToolkit/ResultR.VSToolkit.csproj /p:Configuration=Release /p:DeployExtension=false /p:Version=0.0.0
       working-directory: src
 
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install VSCodeToolkit dependencies
+      run: npm install
+      working-directory: src/ResultR.VSCodeToolkit
+
+    - name: Lint VSCodeToolkit
+      run: npm run lint
+      working-directory: src/ResultR.VSCodeToolkit
+
+    - name: Build VSCodeToolkit
+      run: npm run compile
+      working-directory: src/ResultR.VSCodeToolkit
+
     - name: Test
       run: |
         dotnet test ResultR.Tests/ResultR.Tests.csproj --configuration Release --no-build --verbosity normal

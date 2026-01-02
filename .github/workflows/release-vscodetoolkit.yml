@@ -1,0 +1,82 @@
+name: Release - ResultR.VSCodeToolkit
+
+on:
+  push:
+    tags:
+      - 'vscodetoolkit-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release-vscodetoolkit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Get version from tag
+        id: version
+        run: |
+          VERSION="${GITHUB_REF_NAME#vscodetoolkit-v}"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update package.json version
+        run: npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version
+        working-directory: src/ResultR.VSCodeToolkit
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: src/ResultR.VSCodeToolkit
+
+      - name: Lint
+        run: npm run lint
+        working-directory: src/ResultR.VSCodeToolkit
+
+      - name: Build
+        run: npm run compile
+        working-directory: src/ResultR.VSCodeToolkit
+
+      - name: Copy LICENSE for packaging
+        run: cp ../../LICENSE LICENSE
+        working-directory: src/ResultR.VSCodeToolkit
+
+      - name: Package VSIX
+        run: npx vsce package --out ResultR.VSCodeToolkit.${{ steps.version.outputs.VERSION }}.vsix
+        working-directory: src/ResultR.VSCodeToolkit
+
+      - name: Publish to VS Code Marketplace
+        run: npx vsce publish --pat ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
+        working-directory: src/ResultR.VSCodeToolkit
+
+      - name: Publish to Open VSX Registry
+        run: npx ovsx publish ResultR.VSCodeToolkit.${{ steps.version.outputs.VERSION }}.vsix --pat ${{ secrets.OPEN_VSX_TOKEN }}
+        working-directory: src/ResultR.VSCodeToolkit
+        continue-on-error: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            src/ResultR.VSCodeToolkit/ResultR.VSCodeToolkit.${{ steps.version.outputs.VERSION }}.vsix
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+          name: ResultR.VSCodeToolkit v${{ steps.version.outputs.VERSION }}
+          body: |
+            ## ResultR VS Code Extension v${{ steps.version.outputs.VERSION }}
+            
+            Navigate from `IRequest`/`IRequest<T>` classes to their corresponding `IRequestHandler` implementations with a single keystroke.
+            
+            ### Installation
+            - **VS Code Marketplace**: Search for "ResultR" in Extensions
+            - **Open VSX**: Available at [open-vsx.org](https://open-vsx.org)
+            - **Manual**: Download the `.vsix` file below and install via `code --install-extension <file>.vsix`
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
