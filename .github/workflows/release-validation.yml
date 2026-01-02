@@ -48,7 +48,11 @@ jobs:
         working-directory: src/ResultR.Validation
 
       - name: Publish ResultR.Validation to NuGet
-        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path ./nupkg -Filter *.nupkg | ForEach-Object {
+            dotnet nuget push $_.FullName --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+          }
         working-directory: src/ResultR.Validation
 
       - name: Create GitHub Release
