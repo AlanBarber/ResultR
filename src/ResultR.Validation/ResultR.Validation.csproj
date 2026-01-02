@@ -33,16 +33,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Resources\Icon.png">
-      <PackagePath>\</PackagePath>
-      <Pack>True</Pack>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\README.md">
-      <PackagePath>\</PackagePath>
-      <Pack>True</Pack>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Include="Resources\Icon.png" Pack="true" PackagePath="\" />
+    <None Include="Resources\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
