@@ -2,7 +2,7 @@
   "name": "ResultR-VSCodeToolkit",
   "displayName": "ResultR VS Code Toolkit",
   "description": "ResultR VS Code Toolkit lets you instantly navigate from IRequest to IRequestHandler with a keystroke or right-click. Scaffold new request/handler pairs with correct namespaces from the Explorer.",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "publisher": "AlanBarber",
   "author": {
     "name": "Alan Barber"
@@ -13,8 +13,8 @@
     "url": "https://github.com/AlanBarber/ResultR"
   },
   "homepage": "https://github.com/AlanBarber/ResultR",
-  "icon": "Resources/Icon.png",
-  "readme": "Resources/README.md",
+  "icon": "Icon.png",
+  "readme": "README.md",
   "bugs": {
     "url": "https://github.com/AlanBarber/ResultR/issues"
   },

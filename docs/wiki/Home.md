@@ -78,7 +78,11 @@ else
 ### Optional Packages
 
 - [ResultR.Validation](ResultR.Validation) - Inline validation with fluent API
+
+### IDE Tools
+
 - [ResultR.VSToolkit](ResultR.VSToolkit) - Visual Studio extension for navigation and scaffolding
+- [ResultR.VSCodeToolkit](ResultR.VSCodeToolkit) - VS Code extension for navigation and scaffolding
 
 ## Requirements
 

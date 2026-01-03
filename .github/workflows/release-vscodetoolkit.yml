@@ -43,10 +43,6 @@ jobs:
         run: npm run compile
         working-directory: src/ResultR.VSCodeToolkit
 
-      - name: Copy LICENSE for packaging
-        run: cp ../../LICENSE LICENSE
-        working-directory: src/ResultR.VSCodeToolkit
-
       - name: Package VSIX
         run: npx vsce package --out ResultR.VSCodeToolkit.${{ steps.version.outputs.VERSION }}.vsix
         working-directory: src/ResultR.VSCodeToolkit

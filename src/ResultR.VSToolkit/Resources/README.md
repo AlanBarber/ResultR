@@ -41,6 +41,7 @@ The ResultR VS Toolkit provides a simple way to navigate between `IRequest`/`IRe
 - [ResultR on NuGet](https://www.nuget.org/packages/ResultR)
 - [ResultR.Validation on NuGet](https://www.nuget.org/packages/ResultR.Validation)
 - [ResultR.VSToolkit on VS Marketplace](https://marketplace.visualstudio.com/items?itemName=AlanBarber.ResultR-VSToolkit)
+- [ResultR.VSCodeToolkit on VS Marketplace](https://marketplace.visualstudio.com/items?itemName=AlanBarber.ResultR-VSCodeToolkit)
 
 ## 🤝 Contributing
 
