@@ -57,13 +57,6 @@ jobs:
           }
         id: rename
 
-      - name: Publish to Visual Studio Marketplace
-        uses: CodingWithCalvin/GHA-VSMarketplacePublisher@v2.0.0
-        with:
-          marketplace-pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
-          publish-manifest-path: src/ResultR.VSToolkit/Resources/publishManifest.json
-          vsix-path: ${{ steps.rename.outputs.VSIX_PATH }}
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:

@@ -93,6 +93,30 @@ public class Result
 
         return value is TValue typedValue ? typedValue : default;
     }
+
+    /// <summary>
+    /// Matches the result to one of two functions based on success or failure state.
+    /// </summary>
+    /// <typeparam name="TResult">The return type of the match functions.</typeparam>
+    /// <param name="onSuccess">Function to execute if the result is successful.</param>
+    /// <param name="onFailure">Function to execute if the result is a failure. Receives the error message.</param>
+    /// <returns>The value returned by the executed function.</returns>
+    public TResult Match<TResult>(Func<TResult> onSuccess, Func<string, TResult> onFailure)
+    {
+        return IsSuccess ? onSuccess() : onFailure(Error!);
+    }
+
+    /// <summary>
+    /// Matches the result to one of two functions based on success or failure state.
+    /// </summary>
+    /// <typeparam name="TResult">The return type of the match functions.</typeparam>
+    /// <param name="onSuccess">Function to execute if the result is successful.</param>
+    /// <param name="onFailure">Function to execute if the result is a failure. Receives the error message and exception.</param>
+    /// <returns>The value returned by the executed function.</returns>
+    public TResult Match<TResult>(Func<TResult> onSuccess, Func<string, Exception?, TResult> onFailure)
+    {
+        return IsSuccess ? onSuccess() : onFailure(Error!, Exception);
+    }
 }
 
 /// <summary>
@@ -150,6 +174,30 @@ public class Result<T> : Result
     {
         base.WithMetadata(key, value);
         return this;
+    }
+
+    /// <summary>
+    /// Matches the result to one of two functions based on success or failure state.
+    /// </summary>
+    /// <typeparam name="TResult">The return type of the match functions.</typeparam>
+    /// <param name="onSuccess">Function to execute if the result is successful. Receives the result value.</param>
+    /// <param name="onFailure">Function to execute if the result is a failure. Receives the error message.</param>
+    /// <returns>The value returned by the executed function.</returns>
+    public TResult Match<TResult>(Func<T, TResult> onSuccess, Func<string, TResult> onFailure)
+    {
+        return IsSuccess ? onSuccess(_value!) : onFailure(Error!);
+    }
+
+    /// <summary>
+    /// Matches the result to one of two functions based on success or failure state.
+    /// </summary>
+    /// <typeparam name="TResult">The return type of the match functions.</typeparam>
+    /// <param name="onSuccess">Function to execute if the result is successful. Receives the result value.</param>
+    /// <param name="onFailure">Function to execute if the result is a failure. Receives the error message and exception.</param>
+    /// <returns>The value returned by the executed function.</returns>
+    public TResult Match<TResult>(Func<T, TResult> onSuccess, Func<string, Exception?, TResult> onFailure)
+    {
+        return IsSuccess ? onSuccess(_value!) : onFailure(Error!, Exception);
     }
 
     /// <summary>

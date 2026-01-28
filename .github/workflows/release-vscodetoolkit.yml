@@ -47,15 +47,6 @@ jobs:
         run: npx vsce package --out ResultR.VSCodeToolkit.${{ steps.version.outputs.VERSION }}.vsix
         working-directory: src/ResultR.VSCodeToolkit
 
-      - name: Publish to VS Code Marketplace
-        run: npx vsce publish --pat ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
-        working-directory: src/ResultR.VSCodeToolkit
-
-      - name: Publish to Open VSX Registry
-        run: npx ovsx publish ResultR.VSCodeToolkit.${{ steps.version.outputs.VERSION }}.vsix --pat ${{ secrets.OPEN_VSX_TOKEN }}
-        working-directory: src/ResultR.VSCodeToolkit
-        continue-on-error: true
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:

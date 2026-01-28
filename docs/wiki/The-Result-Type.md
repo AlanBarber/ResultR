@@ -167,6 +167,89 @@ public async Task<IActionResult> CreateUser(CreateUserRequest request)
 }
 ```
 
+### Pattern Matching with Match()
+
+The `Match()` method provides a functional approach to handling results by executing one of two callbacks based on success or failure:
+
+```csharp
+[HttpGet("{id}")]
+public async Task<IActionResult> GetUser(int id)
+{
+    var result = await _dispatcher.Dispatch(new GetUserRequest(id));
+    
+    return result.Match(
+        user => Ok(user),
+        error => NotFound(new { error })
+    );
+}
+
+[HttpPost]
+public async Task<IActionResult> CreateUser(CreateUserRequest request)
+{
+    var result = await _dispatcher.Dispatch(request);
+    
+    return result.Match(
+        user => CreatedAtAction(nameof(GetUser), new { id = user.Id }, user),
+        error => BadRequest(new { error })
+    );
+}
+```
+
+#### Accessing Exception Information
+
+Use the overload that accepts both error message and exception when you need detailed error information:
+
+```csharp
+[HttpGet("{id}")]
+public async Task<IActionResult> GetUser(int id)
+{
+    var result = await _dispatcher.Dispatch(new GetUserRequest(id));
+    
+    return result.Match(
+        user => Ok(user),
+        (error, exception) => 
+        {
+            if (exception is not null)
+            {
+                _logger.LogError(exception, "Failed to get user {UserId}", id);
+            }
+            return NotFound(new { error, hasException = exception is not null });
+        }
+    );
+}
+```
+
+#### Non-Generic Result
+
+The `Match()` method is also available on the non-generic `Result` type:
+
+```csharp
+public async Task<IActionResult> DeleteUser(int id)
+{
+    var result = await _dispatcher.Dispatch(new DeleteUserRequest(id));
+    
+    return result.Match(
+        () => NoContent(),
+        error => NotFound(new { error })
+    );
+}
+
+// With exception handling
+public async Task<IActionResult> DeleteUser(int id)
+{
+    var result = await _dispatcher.Dispatch(new DeleteUserRequest(id));
+    
+    return result.Match(
+        () => NoContent(),
+        (error, exception) => 
+        {
+            _logger.LogError(exception, "Failed to delete user {UserId}", id);
+            return StatusCode(500, new { error });
+        }
+    );
+}
+```
+
 ## Exception Handling
 
 ResultR automatically catches exceptions in handlers and converts them to failure results:
